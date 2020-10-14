@@ -7,5 +7,9 @@ type Transaction struct {
 	Amount      int
 	Description string
 
+	// Set by an importer.
 	Extra string
+
+	// Set by the data store.
+	ID string
 }

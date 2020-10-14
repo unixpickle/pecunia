@@ -14,7 +14,10 @@ import (
 
 // A TransactionImporter loads transaction logs from a file.
 type TransactionImporter interface {
-	// Name returns a generic name for the importer.
+	// ID returns a unique ID for this type of importer.
+	ID() string
+
+	// Name returns a human-readable name for the importer.
 	Name() string
 
 	// Import loads transactions from an importer-specific
@@ -30,8 +33,27 @@ type TransactionImporter interface {
 	Merge(r io.Reader, existing []*Transaction) ([]*Transaction, error)
 }
 
+func Importers() []TransactionImporter {
+	return []TransactionImporter{
+		WellsFargoImporter{},
+	}
+}
+
+func ImporterForID(id string) (TransactionImporter, error) {
+	for _, imp := range Importers() {
+		if imp.ID() == id {
+			return imp, nil
+		}
+	}
+	return nil, fmt.Errorf("no importer found for ID: %s", id)
+}
+
 // A WellsFargoImporter imports CSV logs from Wells Fargo.
 type WellsFargoImporter struct{}
+
+func (w WellsFargoImporter) ID() string {
+	return "wellsfargocsv"
+}
 
 func (w WellsFargoImporter) Name() string {
 	return "Wells Fargo CSV"
