@@ -25,7 +25,17 @@ type Storage interface {
 	Accounts() ([]*Account, error)
 	AddAccount(name, importerID string) (*Account, error)
 	Transactions(accountID string) ([]*Transaction, error)
-	SetTransactions(accountID string, trans []*Transaction) ([]*Transaction, error)
+
+	// SetTransactions updates the transaction table under
+	// an account. This may be used to add, delete, and
+	// update transactions.
+	//
+	// Note that the IDs of the incoming transactions are
+	// important. If IDs are empty, then the transaction
+	// is assumed to be added rather than modified, and a
+	// new ID is generated and set on the transaction.
+	SetTransactions(accountID string, trans []*Transaction) error
+
 	DeleteAccount(accountID string) error
 }
 
@@ -79,21 +89,14 @@ func (d *DirStorage) Transactions(accountID string) ([]*Transaction, error) {
 	return transactions, nil
 }
 
-func (d *DirStorage) SetTransactions(accountID string, ts []*Transaction) ([]*Transaction, error) {
-	trans := append([]*Transaction{}, ts...)
-	for i, t := range trans {
+func (d *DirStorage) SetTransactions(accountID string, ts []*Transaction) error {
+	for _, t := range ts {
 		if t.ID == "" {
-			t1 := new(Transaction)
-			*t1 = *t
-			t1.ID = uuid.New().String()
-			trans[i] = t1
+			t.ID = uuid.New().String()
 		}
 	}
 	name := fmt.Sprintf("transactions_%s.json", accountID)
-	if err := d.writeFile(name, trans); err != nil {
-		return nil, err
-	}
-	return trans, nil
+	return d.writeFile(name, ts)
 }
 
 func (d *DirStorage) DeleteAccount(accountID string) error {
