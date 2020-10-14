@@ -25,7 +25,7 @@ type Storage interface {
 	Accounts() ([]*Account, error)
 	AddAccount(name, importerID string) (*Account, error)
 	Transactions(accountID string) ([]*Transaction, error)
-	SetTransactions(accountID string, trans []*Transaction) error
+	SetTransactions(accountID string, trans []*Transaction) ([]*Transaction, error)
 	DeleteAccount(accountID string) error
 }
 
@@ -79,9 +79,21 @@ func (d *DirStorage) Transactions(accountID string) ([]*Transaction, error) {
 	return transactions, nil
 }
 
-func (d *DirStorage) SetTransactions(accountID string, trans []*Transaction) error {
+func (d *DirStorage) SetTransactions(accountID string, ts []*Transaction) ([]*Transaction, error) {
+	trans := append([]*Transaction{}, ts...)
+	for i, t := range trans {
+		if t.ID == "" {
+			t1 := new(Transaction)
+			*t1 = *t
+			t1.ID = uuid.New().String()
+			trans[i] = t1
+		}
+	}
 	name := fmt.Sprintf("transactions_%s.json", accountID)
-	return d.writeFile(name, trans)
+	if err := d.writeFile(name, trans); err != nil {
+		return nil, err
+	}
+	return trans, nil
 }
 
 func (d *DirStorage) DeleteAccount(accountID string) error {
