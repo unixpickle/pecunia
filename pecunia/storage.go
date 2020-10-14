@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/google/uuid"
 )
@@ -43,9 +44,14 @@ type Storage interface {
 // on the file system.
 type DirStorage struct {
 	Dir string
+
+	lock sync.RWMutex
 }
 
 func (d *DirStorage) Accounts() ([]*Account, error) {
+	d.lock.RLock()
+	defer d.lock.RUnlock()
+
 	listing, err := ioutil.ReadDir(d.Dir)
 	if err != nil {
 		return nil, err
@@ -64,6 +70,9 @@ func (d *DirStorage) Accounts() ([]*Account, error) {
 }
 
 func (d *DirStorage) AddAccount(name, importerID string) (*Account, error) {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+
 	accountID := uuid.New().String()
 	account := &Account{
 		ID:         accountID,
@@ -78,6 +87,9 @@ func (d *DirStorage) AddAccount(name, importerID string) (*Account, error) {
 }
 
 func (d *DirStorage) Transactions(accountID string) ([]*Transaction, error) {
+	d.lock.RLock()
+	defer d.lock.RUnlock()
+
 	name := fmt.Sprintf("transactions_%s.json", accountID)
 	var transactions []*Transaction
 	if err := d.readFile(name, &transactions); err != nil {
@@ -90,6 +102,9 @@ func (d *DirStorage) Transactions(accountID string) ([]*Transaction, error) {
 }
 
 func (d *DirStorage) SetTransactions(accountID string, ts []*Transaction) error {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+
 	for _, t := range ts {
 		if t.ID == "" {
 			t.ID = uuid.New().String()
@@ -100,6 +115,9 @@ func (d *DirStorage) SetTransactions(accountID string, ts []*Transaction) error 
 }
 
 func (d *DirStorage) DeleteAccount(accountID string) error {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+
 	transactionsFile := fmt.Sprintf("transactions_%s.json", accountID)
 	accountFile := fmt.Sprintf("account_%s.json", accountID)
 
