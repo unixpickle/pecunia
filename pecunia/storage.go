@@ -23,8 +23,18 @@ type Account struct {
 // Storage provides a system for saving transactions under
 // accounts, updating these accounts, etc.
 type Storage interface {
+	// Accounts lists all of the accounts.
 	Accounts() ([]*Account, error)
+
+	// AddAccount creates a new account with an empty
+	// transaction list.
+	//
+	// Returns the new account to inform the caller of the
+	// account ID.
 	AddAccount(name, importerID string) (*Account, error)
+
+	// Transactions reads the current transaction list for
+	// an account.
 	Transactions(accountID string) ([]*Transaction, error)
 
 	// SetTransactions updates the transaction table under
@@ -37,6 +47,8 @@ type Storage interface {
 	// new ID is generated and set on the transaction.
 	SetTransactions(accountID string, trans []*Transaction) error
 
+	// DeleteAccount deletes an account and its associated
+	// data.
 	DeleteAccount(accountID string) error
 }
 

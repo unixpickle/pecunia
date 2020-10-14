@@ -33,12 +33,15 @@ type TransactionImporter interface {
 	Merge(r io.Reader, existing []*Transaction) ([]*Transaction, error)
 }
 
+// Importers lists the supported importers.
 func Importers() []TransactionImporter {
 	return []TransactionImporter{
 		WellsFargoImporter{},
 	}
 }
 
+// ImporterForID searches the supported importers for a
+// given ID, on returns an error if one is not found.
 func ImporterForID(id string) (TransactionImporter, error) {
 	for _, imp := range Importers() {
 		if imp.ID() == id {
