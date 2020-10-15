@@ -16,74 +16,74 @@ class Page {
     }
 }
 
-class PageManager {
-    constructor(pages) {
-        this.pages = pages;
-        this.presentFromURL();
-        window.addEventListener('popstate', () => this.presentFromURL());
-    }
-
-    go(pageName, options) {
-        let hash = '';
-        Object.keys(options).forEach((key) => {
-            const value = options[key];
-            if (hash === '') {
-                hash = '?';
-            } else {
-                hash += '&';
-            }
-            hash += encodeURIComponent(key) + '=' + encodeURIComponent(value);
-        });
-        history.pushState({}, window.title, '/' + pageName + '#' + hash);
-    }
-
-    presentFromURL() {
-        let pageName = "home";
-        let pageOptions = {};
-
-        const hash = location.hash;
-        const hashPrefix = hash.split('?')[0];
-        if (hashPrefix) {
-            pageName = hashPrefix;
-        }
-        const hashSuffix = hash.split('?')[1];
-        if (hashSuffix) {
-            const parts = hashSuffix.split('&');
-            parts.forEach((part) => {
-                const [key, value] = parts.split('=');
-                if (key) {
-                    pageOptions[decodeURIComponent(key)] = decodeURIComponent(value || '');
-                }
-            })
-        }
-
-        this.pages.forEach((p) => {
-            if (p.name() === pageName) {
-                p.show(pageOptions);
-            } else {
-                p.hide();
-            }
-        });
-    }
-}
-
 class PageHome extends Page {
     constructor() {
         super();
+
+        this.addButton = document.getElementById('add-account-button');
+        this.addButton.addEventListener('click', () => this.addAccount());
     }
 
     name() {
         return "home";
+    }
+
+    addAccount() {
+        window.pageManager.go('add-account', {});
     }
 }
 
 class PageAddAccount extends Page {
     constructor() {
         super();
+
+        this.nameField = document.getElementById('add-account-name');
+        this.typeField = document.getElementById('add-account-type');
+        this.loader = document.getElementById('add-account-loader');
+        this.submitButton = document.getElementById('add-account-submit-button');
+        this.submitButton.addEventListener('click', () => this.submit());
+        this.errorField = document.getElementById('add-account-error');
+        this._request = null;
     }
 
     name() {
         return "add-account";
+    }
+
+    submit() {
+        this.submitButton.classList.add('disabled-loading');
+        this.nameField.classList.add('disabled-loading');
+        this.typeField.classList.add('disabled-loading');
+        this.loader.style.display = 'inline-block';
+        this.errorField.style.display = 'none';
+
+        const name = this.nameField.value;
+        const importer = this.typeField.value;
+        this._request = new APIRequestAddAccount(name, importer).onData((data) => {
+            window.pageManager.replace('account', { 'id': data['ID'] });
+        }).onError((err) => {
+            this.errorField.innerText = '' + err;
+            this.errorField.style.display = 'block';
+        }).finally(() => {
+            this.loader.style.display = 'none';
+            this.submitButton.classList.remove('disabled-loading');
+            this.nameField.classList.remove('disabled-loading');
+            this.typeField.classList.remove('disabled-loading');
+        }).run();
+    }
+
+    show() {
+        super.show();
+        this.errorField.style.display = 'none';
+        this.nameField.value = '';
+        this.typeField.value = 'wellsfargocsv';
+    }
+
+    hide() {
+        super.hide();
+        if (this._request) {
+            this._request.cancel();
+        }
     }
 }
 
@@ -96,9 +96,3 @@ class PageAccount extends Page {
         return "account";
     }
 }
-
-window.pageManager = new PageManager([
-    new PageHome(),
-    new PageAddAccount(),
-    new PageAccount(),
-]);

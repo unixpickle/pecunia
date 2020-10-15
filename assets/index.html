@@ -3,6 +3,8 @@
     <head>
         <meta charset="utf-8">
         <title>Pecunia</title>
+        <script src="js/api.js"></script>
+        <script src="js/pages.js"></script>
         <link rel="stylesheet" href="css/main.css">
     </head>
     <body>
@@ -24,10 +26,25 @@
             </div>
         </div>
         <div class="page" id="page-add-account">
+            <div class="center-pane">
+                <h1 class="center-pane-title">Add account</h1>
+                <input placeholder="Account name" id="add-account-name">
+                <br>
+                <label>Account type:</label>
+                <select id="add-account-type">
+                    <option value="wellsfargocsv" selected>Wells Fargo (CSV)</option>
+                </select>
+                <br>
+                <div class="loader" id="add-account-loader"></div>
+                <button class="submit-button" id="add-account-submit-button">
+                    Add account
+                </button>
+                <div class="error-message" id="add-account-error"></div>
+            </div>
         </div>
         <div class="page" id="page-account">
         </div>
 
-        <script src="js/pages.js"></script>
+        <script src="js/page_manager.js"></script>
     </body>
 </html>
