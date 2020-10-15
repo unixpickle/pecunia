@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 
@@ -127,6 +128,10 @@ func (d *DirStorage) AddAccount(name, importerID string) (*Account, error) {
 }
 
 func (d *DirStorage) Transactions(accountID string) ([]*Transaction, error) {
+	if err := validateID(accountID); err != nil {
+		return nil, err
+	}
+
 	d.lock.RLock()
 	defer d.lock.RUnlock()
 
@@ -142,6 +147,10 @@ func (d *DirStorage) Transactions(accountID string) ([]*Transaction, error) {
 }
 
 func (d *DirStorage) SetTransactions(accountID string, ts []*Transaction) error {
+	if err := validateID(accountID); err != nil {
+		return err
+	}
+
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
@@ -155,6 +164,10 @@ func (d *DirStorage) SetTransactions(accountID string, ts []*Transaction) error 
 }
 
 func (d *DirStorage) AccountFilters(accountID string) (*MultiFilter, error) {
+	if err := validateID(accountID); err != nil {
+		return nil, err
+	}
+
 	d.lock.RLock()
 	defer d.lock.RUnlock()
 
@@ -170,6 +183,10 @@ func (d *DirStorage) AccountFilters(accountID string) (*MultiFilter, error) {
 }
 
 func (d *DirStorage) SetAccountFilters(accountID string, mf *MultiFilter) error {
+	if err := validateID(accountID); err != nil {
+		return err
+	}
+
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	name := fmt.Sprintf("account_filters_%s.json", accountID)
@@ -177,6 +194,10 @@ func (d *DirStorage) SetAccountFilters(accountID string, mf *MultiFilter) error 
 }
 
 func (d *DirStorage) DeleteAccount(accountID string) error {
+	if err := validateID(accountID); err != nil {
+		return err
+	}
+
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
@@ -241,4 +262,12 @@ func (d *DirStorage) writeFile(name string, obj interface{}) error {
 		return err
 	}
 	return os.Rename(tmpPath, filepath.Join(d.Dir, name))
+}
+
+func validateID(id string) error {
+	regexp := regexp.MustCompilePOSIX("^[0-9a-zA-Z\\-]*$")
+	if !regexp.MatchString(id) {
+		return fmt.Errorf("invalid ID: %s", id)
+	}
+	return nil
 }
