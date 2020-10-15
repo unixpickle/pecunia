@@ -47,6 +47,13 @@ type Storage interface {
 	// new ID is generated and set on the transaction.
 	SetTransactions(accountID string, trans []*Transaction) error
 
+	// AccountFilters returns the filters for an account.
+	AccountFilters(accountID string) (*MultiFilter, error)
+
+	// SetAccountFilters updates the filters for an
+	// account.
+	SetAccountFilters(accountID string, mf *MultiFilter) error
+
 	// DeleteAccount deletes an account and its associated
 	// data.
 	DeleteAccount(accountID string) error
@@ -126,21 +133,47 @@ func (d *DirStorage) SetTransactions(accountID string, ts []*Transaction) error 
 	return d.writeFile(name, ts)
 }
 
+func (d *DirStorage) AccountFilters(accountID string) (*MultiFilter, error) {
+	d.lock.RLock()
+	defer d.lock.RUnlock()
+
+	name := fmt.Sprintf("account_filters_%s.json", accountID)
+	var filters MultiFilter
+	if err := d.readFile(name, &filters); err != nil {
+		if os.IsNotExist(err) {
+			return &filters, nil
+		}
+		return nil, err
+	}
+	return &filters, nil
+}
+
+func (d *DirStorage) SetAccountFilters(accountID string, mf *MultiFilter) error {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	name := fmt.Sprintf("account_filters_%s.json", accountID)
+	return d.writeFile(name, mf)
+}
+
 func (d *DirStorage) DeleteAccount(accountID string) error {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
-	transactionsFile := fmt.Sprintf("transactions_%s.json", accountID)
 	accountFile := fmt.Sprintf("account_%s.json", accountID)
+	otherFiles := []string{
+		fmt.Sprintf("transactions_%s.json", accountID),
+		fmt.Sprintf("account_filters_%s.json", accountID),
+	}
 
-	if err := os.Remove(accountFile); err != nil {
+	if err := os.Remove(filepath.Join(d.Dir, accountFile)); err != nil {
 		return err
 	}
 
-	// Ignore error since the account is already gone and
-	// the transactions will never be found/used on their own
-	// so will leak storage but not cause any breakages.
-	os.Remove(transactionsFile)
+	for _, other := range otherFiles {
+		// Ignore errors since the account is already gone and
+		// the data will never be found/used on their own.
+		os.Remove(filepath.Join(d.Dir, other))
+	}
 
 	return nil
 }
