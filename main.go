@@ -39,6 +39,8 @@ func main() {
 	http.HandleFunc("/upload_transactions", server.ServeUploadTransactions)
 	http.HandleFunc("/account_filters", server.ServeAccountFilters)
 	http.HandleFunc("/set_account_filters", server.ServeSetAccountFilters)
+	http.HandleFunc("/global_filters", server.ServeGlobalFilters)
+	http.HandleFunc("/set_global_filters", server.ServeSetGlobalFilters)
 
 	essentials.Must(http.ListenAndServe(addr, nil))
 }
@@ -147,6 +149,29 @@ func (s *Server) ServeSetAccountFilters(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if err := s.Storage.SetAccountFilters(accountID, &filters); err != nil {
+		s.serveError(w, err, http.StatusInternalServerError)
+		return
+	}
+	s.serveObject(w, &filters)
+}
+
+func (s *Server) ServeGlobalFilters(w http.ResponseWriter, r *http.Request) {
+	if filters, err := s.Storage.GlobalFilters(); err != nil {
+		s.serveError(w, err, http.StatusInternalServerError)
+	} else {
+		s.serveObject(w, filters)
+	}
+}
+
+func (s *Server) ServeSetGlobalFilters(w http.ResponseWriter, r *http.Request) {
+	filterJSON := r.FormValue("filters")
+
+	var filters pecunia.MultiFilter
+	if err := json.Unmarshal([]byte(filterJSON), &filters); err != nil {
+		s.serveError(w, err, http.StatusBadRequest)
+		return
+	}
+	if err := s.Storage.SetGlobalFilters(&filters); err != nil {
 		s.serveError(w, err, http.StatusInternalServerError)
 		return
 	}
