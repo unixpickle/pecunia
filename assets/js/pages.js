@@ -8,11 +8,11 @@ class Page {
     }
 
     show(options) {
-        this.element.display = 'block';
+        this.element.style.display = 'block';
     }
 
     hide() {
-        this.element.display = 'none';
+        this.element.style.display = 'none';
     }
 }
 
@@ -57,7 +57,7 @@ class PageManager {
             })
         }
 
-        pages.forEach((p) => {
+        this.pages.forEach((p) => {
             if (p.name() === pageName) {
                 p.show(pageOptions);
             } else {
@@ -67,7 +67,7 @@ class PageManager {
     }
 }
 
-class PageHome {
+class PageHome extends Page {
     constructor() {
         super();
     }
@@ -77,7 +77,7 @@ class PageHome {
     }
 }
 
-class PageAddAccount {
+class PageAddAccount extends Page {
     constructor() {
         super();
     }
@@ -87,7 +87,7 @@ class PageAddAccount {
     }
 }
 
-class PageAccount {
+class PageAccount extends Page {
     constructor() {
         super();
     }
@@ -96,3 +96,9 @@ class PageAccount {
         return "account";
     }
 }
+
+window.pageManager = new PageManager([
+    new PageHome(),
+    new PageAddAccount(),
+    new PageAccount(),
+]);
