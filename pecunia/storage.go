@@ -57,6 +57,13 @@ type Storage interface {
 	// DeleteAccount deletes an account and its associated
 	// data.
 	DeleteAccount(accountID string) error
+
+	// GlobalFilters gets filters applied to all accounts.
+	GlobalFilters() (*MultiFilter, error)
+
+	// SetGlobalFilters updates the filters that are
+	// applied to all accounts.
+	SetGlobalFilters(mf *MultiFilter) error
 }
 
 // DirStorage is a storage system that using a directory
@@ -176,6 +183,26 @@ func (d *DirStorage) DeleteAccount(accountID string) error {
 	}
 
 	return nil
+}
+
+func (d *DirStorage) GlobalFilters(accountID string) (*MultiFilter, error) {
+	d.lock.RLock()
+	defer d.lock.RUnlock()
+
+	var filters MultiFilter
+	if err := d.readFile("global_filters.json", &filters); err != nil {
+		if os.IsNotExist(err) {
+			return &filters, nil
+		}
+		return nil, err
+	}
+	return &filters, nil
+}
+
+func (d *DirStorage) SetGlobalFilters(accountID string, mf *MultiFilter) error {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	return d.writeFile("global_filters.json", mf)
 }
 
 func (d *DirStorage) readFile(name string, out interface{}) error {
