@@ -66,6 +66,20 @@ type Storage interface {
 	SetGlobalFilters(mf *MultiFilter) error
 }
 
+// AccountForID gets an account for a given ID.
+func AccountForID(s Storage, accountID string) (*Account, error) {
+	accts, err := s.Accounts()
+	if err != nil {
+		return nil, err
+	}
+	for _, a := range accts {
+		if a.ID == accountID {
+			return a, nil
+		}
+	}
+	return nil, fmt.Errorf("no account with ID: %s", accountID)
+}
+
 // DirStorage is a storage system that using a directory
 // on the file system.
 type DirStorage struct {
@@ -185,7 +199,7 @@ func (d *DirStorage) DeleteAccount(accountID string) error {
 	return nil
 }
 
-func (d *DirStorage) GlobalFilters(accountID string) (*MultiFilter, error) {
+func (d *DirStorage) GlobalFilters() (*MultiFilter, error) {
 	d.lock.RLock()
 	defer d.lock.RUnlock()
 
@@ -199,7 +213,7 @@ func (d *DirStorage) GlobalFilters(accountID string) (*MultiFilter, error) {
 	return &filters, nil
 }
 
-func (d *DirStorage) SetGlobalFilters(accountID string, mf *MultiFilter) error {
+func (d *DirStorage) SetGlobalFilters(mf *MultiFilter) error {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	return d.writeFile("global_filters.json", mf)
