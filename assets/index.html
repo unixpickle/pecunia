@@ -3,8 +3,29 @@
     <head>
         <meta charset="utf-8">
         <title>Pecunia</title>
+        <script src="js/pages.js"></script>
     </head>
     <body>
-
+        <div class="page" id="page-home">
+            <div class="section" id="section-accounts">
+                <h1 class="section-title">Accounts</h1>
+                <ol class="accounts-list" id="accounts-list"></ol>
+                <button class="add-button" id="add-account-button">Add Account</button>
+            </div>
+            <div class="section" id="section-summary">
+                <div class="summary-item" id="summary-item-week">
+                    <label class="summary-item-name">Change over past 7 days:</label>
+                    <label class="summary-item-value"></label>
+                </div>
+                <div class="summary-item" id="summary-item-month">
+                    <label class="summary-item-name">Change over past 28 days:</label>
+                    <label class="summary-item-value"></label>
+                </div>
+            </div>
+        </div>
+        <div class="page" id="page-add-account">
+        </div>
+        <div class="page" id="page-account">
+        </div>
     </body>
 </html>
