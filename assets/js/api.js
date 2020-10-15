@@ -46,6 +46,12 @@ class APIRequest {
     }
 }
 
+class APIRequestAccounts extends APIRequest {
+    constructor() {
+        super('/accounts');
+    }
+}
+
 class APIRequestAddAccount extends APIRequest {
     constructor(name, importer) {
         super('/add_account?name=' + encodeURIComponent(name) +
