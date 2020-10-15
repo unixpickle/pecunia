@@ -20,6 +20,21 @@ class PageManager {
     constructor(pages) {
         this.pages = pages;
         this.presentFromURL();
+        window.addEventListener('popstate', () => this.presentFromURL());
+    }
+
+    go(pageName, options) {
+        let hash = '';
+        Object.keys(options).forEach((key) => {
+            const value = options[key];
+            if (hash === '') {
+                hash = '?';
+            } else {
+                hash += '&';
+            }
+            hash += encodeURIComponent(key) + '=' + encodeURIComponent(value);
+        });
+        history.pushState({}, window.title, '/' + pageName + '#' + hash);
     }
 
     presentFromURL() {
