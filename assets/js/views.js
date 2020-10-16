@@ -85,7 +85,7 @@ class AccountTitleView extends View {
 
         this.onReady = () => null;
 
-        this.title = this.element.getElementsByClassName('page-title')[0];
+        this.title = this.element.getElementsByClassName('section-title')[0];
         this.loader = this.element.getElementsByClassName('loader')[0];
         this.error = this.element.getElementsByClassName('error-message')[0];
 

@@ -38,3 +38,24 @@ html, body {
 .error-message {
     color: red;
 }
+
+.section {
+    width: 600px;
+    box-sizing: border-box;
+    border: 1px solid #d5d5d5;
+    padding: 10px;
+    margin: 10px auto;
+}
+
+@media (max-width: 620px) {
+    .section {
+        width: calc(100% - 20px);
+        margin: 10px;
+    }
+}
+
+.section-title {
+    padding: 0;
+    margin: 0 0 0.5em 0;
+    font-size: 1.5em;
+}
