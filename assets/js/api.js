@@ -25,7 +25,14 @@ class APIRequest {
 
     run() {
         this._fetch().then((response) => response.json()).then((data) => {
-            if (!this._cancelled && this._callback !== null) {
+            if (this._cancelled) {
+                return;
+            }
+            if (data['error']) {
+                if (this._errorCallback !== null) {
+                    this._errorCallback(data['error']);
+                }
+            } else if (this._callback !== null) {
                 this._callback(data['result']);
             }
         }).catch((err) => {

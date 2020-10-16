@@ -2,6 +2,7 @@ package pecunia
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -128,12 +129,12 @@ func (d *DirStorage) AddAccount(name, importerID string) (*Account, error) {
 }
 
 func (d *DirStorage) Transactions(accountID string) ([]*Transaction, error) {
-	if err := validateID(accountID); err != nil {
-		return nil, err
-	}
-
 	d.lock.RLock()
 	defer d.lock.RUnlock()
+
+	if err := d.checkAccountID(accountID); err != nil {
+		return nil, err
+	}
 
 	name := fmt.Sprintf("transactions_%s.json", accountID)
 	var transactions []*Transaction
@@ -147,12 +148,12 @@ func (d *DirStorage) Transactions(accountID string) ([]*Transaction, error) {
 }
 
 func (d *DirStorage) SetTransactions(accountID string, ts []*Transaction) error {
-	if err := validateID(accountID); err != nil {
-		return err
-	}
-
 	d.lock.Lock()
 	defer d.lock.Unlock()
+
+	if err := d.checkAccountID(accountID); err != nil {
+		return err
+	}
 
 	for _, t := range ts {
 		if t.ID == "" {
@@ -164,12 +165,12 @@ func (d *DirStorage) SetTransactions(accountID string, ts []*Transaction) error 
 }
 
 func (d *DirStorage) AccountFilters(accountID string) (*MultiFilter, error) {
-	if err := validateID(accountID); err != nil {
-		return nil, err
-	}
-
 	d.lock.RLock()
 	defer d.lock.RUnlock()
+
+	if err := d.checkAccountID(accountID); err != nil {
+		return nil, err
+	}
 
 	name := fmt.Sprintf("account_filters_%s.json", accountID)
 	var filters MultiFilter
@@ -183,23 +184,22 @@ func (d *DirStorage) AccountFilters(accountID string) (*MultiFilter, error) {
 }
 
 func (d *DirStorage) SetAccountFilters(accountID string, mf *MultiFilter) error {
-	if err := validateID(accountID); err != nil {
-		return err
-	}
-
 	d.lock.Lock()
 	defer d.lock.Unlock()
+	if err := d.checkAccountID(accountID); err != nil {
+		return err
+	}
 	name := fmt.Sprintf("account_filters_%s.json", accountID)
 	return d.writeFile(name, mf)
 }
 
 func (d *DirStorage) DeleteAccount(accountID string) error {
-	if err := validateID(accountID); err != nil {
-		return err
-	}
-
 	d.lock.Lock()
 	defer d.lock.Unlock()
+
+	if err := d.checkAccountID(accountID); err != nil {
+		return err
+	}
 
 	accountFile := fmt.Sprintf("account_%s.json", accountID)
 	otherFiles := []string{
@@ -262,6 +262,17 @@ func (d *DirStorage) writeFile(name string, obj interface{}) error {
 		return err
 	}
 	return os.Rename(tmpPath, filepath.Join(d.Dir, name))
+}
+
+func (d *DirStorage) checkAccountID(accountID string) error {
+	if err := validateID(accountID); err != nil {
+		return err
+	}
+	path := filepath.Join(d.Dir, fmt.Sprintf("account_%s.json", accountID))
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return errors.New("account ID not found: " + accountID)
+	}
+	return nil
 }
 
 func validateID(id string) error {
