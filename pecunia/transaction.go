@@ -12,4 +12,7 @@ type Transaction struct {
 
 	// Set by the data store.
 	ID string
+
+	// May be set by filters.
+	Category string
 }

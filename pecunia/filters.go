@@ -12,15 +12,19 @@ type Filter interface {
 // MultiFilter is a Filter that combines many simple
 // filters.
 type MultiFilter struct {
-	PatternFilters []*PatternFilter
-	ReplaceFilters []*ReplaceFilter
-	SignFilter     *SignFilter
-	IDFilter       *IDFilter
+	PatternFilters  []*PatternFilter
+	CategoryFilters []*CategoryFilter
+	ReplaceFilters  []*ReplaceFilter
+	SignFilter      *SignFilter
+	IDFilter        *IDFilter
 }
 
 func (m *MultiFilter) Filter(ts <-chan *Transaction) <-chan *Transaction {
 	for _, p := range m.PatternFilters {
 		ts = p.Filter(ts)
+	}
+	for _, c := range m.CategoryFilters {
+		ts = c.Filter(ts)
 	}
 	for _, r := range m.ReplaceFilters {
 		ts = r.Filter(ts)
@@ -55,6 +59,31 @@ func (r *ReplaceFilter) Filter(ts <-chan *Transaction) <-chan *Transaction {
 			*t1 = *t
 			t1.Description = patternExpr.ReplaceAllString(t.Description, r.Replacement)
 			res <- t1
+		}
+	}()
+	return res
+}
+
+// CategoryFilter sets a category for every transaction
+// whose description matches a regular expression.
+type CategoryFilter struct {
+	Pattern  string
+	Category string
+}
+
+func (c *CategoryFilter) Filter(ts <-chan *Transaction) <-chan *Transaction {
+	patternExpr := regexp.MustCompilePOSIX(c.Pattern)
+	res := make(chan *Transaction, 1)
+	go func() {
+		defer close(res)
+		for t := range ts {
+			if patternExpr.MatchString(t.Description) {
+				t1 := *t
+				t1.Category = c.Category
+				res <- &t1
+			} else {
+				res <- t
+			}
 		}
 	}()
 	return res
