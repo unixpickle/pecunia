@@ -10,7 +10,7 @@
     </head>
     <body>
         <div class="page" id="page-home">
-            <div class="section" id="section-accounts">
+            <div class="section" id="accounts-section">
                 <h1 class="section-title">Accounts</h1>
                 <div class="loader" id="accounts-list-loader"></div>
                 <div class="empty-list" id="accounts-list-empty">No Accounts</div>
@@ -18,7 +18,7 @@
                 <div class="error-message" id="accounts-list-error"></div>
                 <button class="add-button" id="add-account-button">Add Account</button>
             </div>
-            <div class="section" id="section-summary">
+            <div class="section" id="summary-section">
                 <h1 class="section-title">Summary</h1>
                 <div class="summary-item" id="summary-item-week">
                     <label class="summary-item-name">Change over past 7 days:</label>
@@ -48,19 +48,25 @@
             </div>
         </div>
         <div class="page" id="page-account">
-            <h1 class="page-title" id="account-title"></h1>
-            <div class="loader" id="account-loader"></div>
-            <div class="error-message" id="account-error"></div>
+            <div class="section" id="account-title-section">
+                <h1 class="page-title"></h1>
+                <div class="loader"></div>
+                <div class="error-message"></div>
+            </div>
             <div class="section" id="account-upload-section">
                 <h1 class="section-title">Upload transaction data</h3>
-                <input type="file" id="account-upload-input">
+                <input type="file" class="file-input">
                 <br>
-                <button class="upload-button" id="account-upload-button">Upload</button>
+                <button class="upload-button">Upload</button>
+                <div class="loader"></div>
+                <div class="error-message"></div>
             </div>
             <div class="section" id="account-transactions-section">
                 <h1 class="section-title">Transactions</h1>
-                <div class="empty-list" id="account-transactions-empty">No transactions</div>
-                <table class="transactions" id="account-transactions"></table>
+                <div class="loader"></div>
+                <div class="error-message"></div>
+                <div class="empty-list">No transactions</div>
+                <table class="transactions"></table>
             </div>
         </div>
         <script src="js/page_manager.js"></script>

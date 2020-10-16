@@ -24,7 +24,7 @@ class APIRequest {
     }
 
     run() {
-        fetch(this.url).then((response) => response.json()).then((data) => {
+        this._fetch().then((response) => response.json()).then((data) => {
             if (!this._cancelled && this._callback !== null) {
                 this._callback(data['result']);
             }
@@ -34,6 +34,10 @@ class APIRequest {
             }
         }).finally(() => this.cancel());
         return this;
+    }
+
+    _fetch() {
+        return fetch(this.url);
     }
 
     cancel() {
@@ -68,6 +72,21 @@ class APIRequestAddAccount extends APIRequest {
 class APIRequestTransactions extends APIRequest {
     constructor(accountID) {
         super('/transactions?account_id=' + encodeURIComponent(accountID));
+    }
+}
+
+class APIRequestUploadTransactions extends APIRequest {
+    constructor(accountID, file) {
+        super('/upload_transactions?account_id=' + encodeURIComponent(accountID));
+        this._formData = new FormData();
+        this._formData.append('document', file);
+    }
+
+    _fetch() {
+        return fetch(this.url, {
+            method: 'POST',
+            body: this._formData,
+        });
     }
 }
 
