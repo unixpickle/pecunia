@@ -40,6 +40,7 @@ class PageHome extends Page {
         this.accountsList.style.display = 'none';
         this.accountsListEmpty.style.display = 'none';
         this.accountsListLoader.style.display = 'block';
+        this.accountsListError.style.display = 'block';
         this.addButton.classList.add('disabled-loading');
         this._accountsRequest = new APIRequestAccounts().onData((accounts) => {
             if (accounts.length === 0) {
@@ -50,7 +51,7 @@ class PageHome extends Page {
             }
         }).onError((err) => {
             this.accountsListError.style.display = 'block';
-            this.accountsListError = '' + err;
+            this.accountsListError.value = '' + err;
         }).finally(() => {
             this.accountsListLoader.style.display = 'none';
             this.addButton.classList.remove('disabled-loading');
@@ -140,9 +141,95 @@ class PageAddAccount extends Page {
 class PageAccount extends Page {
     constructor() {
         super();
+
+        this.nameField = document.getElementById('account-title');
+        this.loader = document.getElementById('account-loader');
+        this.errorField = document.getElementById('account-error');
+
+        this.transactionsSection = document.getElementById('account-transactions-section');
+        this.transactionsEmpty = document.getElementById('account-transactions-empty');
+        this.transactions = document.getElementById('account-transactions');
+
+        this.uploadSection = document.getElementById('account-upload-section');
+        this.uploadInput = document.getElementById('account-upload-input');
+        this.uploadButton = document.getElementById('account-upload-button');
+        this.uploadButton.addEventListener('click', () => this.upload());
+
+        this.account_id = null;
+        this._request = null;
     }
 
     name() {
         return "account";
+    }
+
+    show(data) {
+        super.show();
+        this.account_id = data['id'];
+
+        [
+            this.nameField,
+            this.transactionsSection,
+            this.uploadSection,
+            this.transactions,
+            this.transactionsEmpty,
+            this.errorField,
+        ].forEach((x) => x.style.display = 'none');
+        this.loader.style.display = 'block';
+
+        const accountReq = new APIRequestAccount(data['id']);
+        const transReq = new APIRequestTransactions(data['id']);
+
+        this._request = new MultiAPIRequest([accountReq, transReq]);
+        this._request.onData((accAndTrans) => {
+            const [account, transactions] = accAndTrans;
+            this.nameField.style.display = 'block';
+            this.nameField.textContent = account['Name'];
+            if (transactions.length === 0) {
+                this.transactionsEmpty.style.display = 'block';
+            } else {
+                this.populateTransactions(transactions);
+                this.transactions.style.display = 'block';
+            }
+            this.transactionsSection.style.display = 'block';
+            this.uploadSection.style.display = 'block';
+        }).onError((err) => {
+            this.errorField.style.display = 'block';
+            this.errorField.value = '' + err;
+        }).finally(() => {
+            this.loader.style.display = 'none';
+        }).run();
+    }
+
+    hide() {
+        super.hide();
+        if (this._request) {
+            this._request.cancel();
+        }
+    }
+
+    populateTransactions(transactions) {
+        this.transactions.innerHTML = '<tr><th>Date</th><th>Amount</th><th>About</th></tr>';
+        transactions.reverse().forEach((trans) => {
+            const row = document.createElement('tr');
+            ['Time', 'Amount', 'Description'].forEach((k) => {
+                const col = document.createElement('td');
+                col.textContent = trans[k];
+                row.appendChild(col);
+            });
+            this.transactions.appendChild(row);
+        });
+    }
+
+    upload() {
+        // TODO: separate pane here.
+        const formData = new FormData();
+        formData.append("document", this.uploadInput.files[0]);
+        fetch('/upload_transactions?account_id=' + encodeURIComponent(this.account_id), {
+            method: 'POST',
+            body: formData,
+        }).then((resp) => resp.json()).then((resp) => {
+            this.populateTransactions(resp.result);
+        });
     }
 }

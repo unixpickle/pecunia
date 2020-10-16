@@ -33,6 +33,7 @@ func main() {
 	fs := http.FileServer(http.Dir(assets))
 	http.Handle("/", fs)
 	http.HandleFunc("/accounts", server.ServeAccounts)
+	http.HandleFunc("/account", server.ServeAccount)
 	http.HandleFunc("/add_account", server.ServeAddAccount)
 	http.HandleFunc("/delete_account", server.ServeDeleteAccount)
 	http.HandleFunc("/transactions", server.ServeTransactions)
@@ -52,6 +53,15 @@ func (s *Server) ServeAccounts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.serveObject(w, accounts)
+}
+
+func (s *Server) ServeAccount(w http.ResponseWriter, r *http.Request) {
+	accountID := r.FormValue("account_id")
+	if account, err := pecunia.AccountForID(s.Storage, accountID); err != nil {
+		s.serveError(w, err, http.StatusBadRequest)
+	} else {
+		s.serveObject(w, account)
+	}
 }
 
 func (s *Server) ServeAddAccount(w http.ResponseWriter, r *http.Request) {

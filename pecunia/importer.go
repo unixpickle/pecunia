@@ -96,7 +96,7 @@ func (w WellsFargoImporter) Import(r io.Reader) ([]*Transaction, error) {
 		cents := int(math.Round(dollars * 100))
 		jsonData, _ := json.Marshal(record)
 		tns = append(tns, &Transaction{
-			Time:        time.Date(numParts[0], time.Month(numParts[1]), numParts[2], 12, 0, 0, 0, time.Local),
+			Time:        time.Date(numParts[2], time.Month(numParts[0]), numParts[1], 12, 0, 0, 0, time.Local),
 			Amount:      cents,
 			Description: record[4],
 			Extra:       string(jsonData),

@@ -18,6 +18,7 @@
                 <button class="add-button" id="add-account-button">Add Account</button>
             </div>
             <div class="section" id="section-summary">
+                <h1 class="section-title">Summary</h1>
                 <div class="summary-item" id="summary-item-week">
                     <label class="summary-item-name">Change over past 7 days:</label>
                     <label class="summary-item-value"></label>
@@ -46,8 +47,21 @@
             </div>
         </div>
         <div class="page" id="page-account">
+            <h1 class="page-title" id="account-title"></h1>
+            <div class="loader" id="account-loader"></div>
+            <div class="error-message" id="account-error"></div>
+            <div class="section" id="account-upload-section">
+                <h1 class="section-title">Upload transaction data</h3>
+                <input type="file" id="account-upload-input">
+                <br>
+                <button class="upload-button" id="account-upload-button">Upload</button>
+            </div>
+            <div class="section" id="account-transactions-section">
+                <h1 class="section-title">Transactions</h1>
+                <div class="empty-list" id="account-transactions-empty">No transactions</div>
+                <table class="transactions" id="account-transactions"></table>
+            </div>
         </div>
-
         <script src="js/page_manager.js"></script>
     </body>
 </html>
