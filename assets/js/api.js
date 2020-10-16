@@ -97,6 +97,38 @@ class APIRequestUploadTransactions extends APIRequest {
     }
 }
 
+class APIRequestFilters extends APIRequest {
+    constructor(accountIDOrNull) {
+        if (accountIDOrNull === null) {
+            super('/global_filters');
+        } else {
+            super('/account_filters?account_id=' + encodeURIComponent(accountIDOrNull));
+        }
+    }
+}
+
+class APIRequestSetFilters extends APIRequest {
+    constructor(accountIDOrNull, filters) {
+        this.postData = "filters=" + encodeURIComponent(JSON.stringify(filters));
+        if (accountIDOrNull === null) {
+            super('/set_global_filters');
+        } else {
+            super('/set_account_filters');
+            this.postData += '&account_id=' + accountIDOrNull;
+        }
+    }
+
+    _fetch() {
+        return fetch(this.url, {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/x-www-form-urlencoded',
+            },
+            body: this.postData,
+        });
+    }
+}
+
 class MultiAPIRequest {
     constructor(requests) {
         this._requests = requests;
