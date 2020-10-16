@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"reflect"
+	"time"
 
 	"github.com/unixpickle/essentials"
 	"github.com/unixpickle/pecunia/pecunia"
@@ -32,16 +33,16 @@ func main() {
 	server := &Server{Storage: &pecunia.DirStorage{Dir: dataDir}}
 	fs := http.FileServer(http.Dir(assets))
 	http.Handle("/", fs)
-	http.HandleFunc("/accounts", server.ServeAccounts)
-	http.HandleFunc("/account", server.ServeAccount)
-	http.HandleFunc("/add_account", server.ServeAddAccount)
-	http.HandleFunc("/delete_account", server.ServeDeleteAccount)
-	http.HandleFunc("/transactions", server.ServeTransactions)
-	http.HandleFunc("/upload_transactions", server.ServeUploadTransactions)
-	http.HandleFunc("/account_filters", server.ServeAccountFilters)
-	http.HandleFunc("/set_account_filters", server.ServeSetAccountFilters)
-	http.HandleFunc("/global_filters", server.ServeGlobalFilters)
-	http.HandleFunc("/set_global_filters", server.ServeSetGlobalFilters)
+	http.HandleFunc("/accounts", DisableCache(server.ServeAccounts))
+	http.HandleFunc("/account", DisableCache(server.ServeAccount))
+	http.HandleFunc("/add_account", DisableCache(server.ServeAddAccount))
+	http.HandleFunc("/delete_account", DisableCache(server.ServeDeleteAccount))
+	http.HandleFunc("/transactions", DisableCache(server.ServeTransactions))
+	http.HandleFunc("/upload_transactions", DisableCache(server.ServeUploadTransactions))
+	http.HandleFunc("/account_filters", DisableCache(server.ServeAccountFilters))
+	http.HandleFunc("/set_account_filters", DisableCache(server.ServeSetAccountFilters))
+	http.HandleFunc("/global_filters", DisableCache(server.ServeGlobalFilters))
+	http.HandleFunc("/set_global_filters", DisableCache(server.ServeSetGlobalFilters))
 
 	essentials.Must(http.ListenAndServe(addr, nil))
 }
@@ -212,4 +213,20 @@ func (s *Server) serveObject(w http.ResponseWriter, obj interface{}) {
 		"status": http.StatusOK,
 		"result": obj,
 	})
+}
+
+func DisableCache(f http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// https://stackoverflow.com/questions/33880343/go-webserver-dont-cache-files-using-timestamp
+		headers := map[string]string{
+			"Expires":         time.Unix(0, 0).Format(time.RFC1123),
+			"Cache-Control":   "no-cache, private, max-age=0",
+			"Pragma":          "no-cache",
+			"X-Accel-Expires": "0",
+		}
+		for k, v := range headers {
+			w.Header().Set(k, v)
+		}
+		f(w, r)
+	}
 }

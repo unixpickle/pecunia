@@ -20,15 +20,7 @@ class PageHome extends Page {
     constructor() {
         super();
 
-        this.accountsList = document.getElementById('accounts-list');
-        this.accountsListEmpty = document.getElementById('accounts-list-empty');
-        this.accountsListLoader = document.getElementById('accounts-list-loader');
-        this.accountsListError = document.getElementById('accounts-list-error');
-
-        this.addButton = document.getElementById('add-account-button');
-        this.addButton.addEventListener('click', () => this.addAccount());
-
-        this._accountsRequest = null;
+        this.accounts = new AccountsView();
     }
 
     name() {
@@ -37,50 +29,15 @@ class PageHome extends Page {
 
     show() {
         super.show();
-        this.accountsList.style.display = 'none';
-        this.accountsListEmpty.style.display = 'none';
-        this.accountsListLoader.style.display = 'block';
-        this.accountsListError.style.display = 'block';
-        this.addButton.classList.add('disabled-loading');
-        this._accountsRequest = new APIRequestAccounts().onData((accounts) => {
-            if (accounts.length === 0) {
-                this.accountsListEmpty.style.display = 'block';
-            } else {
-                this.populateAccountsList(accounts);
-                this.accountsList.style.display = 'block';
-            }
-        }).onError((err) => {
-            this.accountsListError.style.display = 'block';
-            this.accountsListError.value = '' + err;
-        }).finally(() => {
-            this.accountsListLoader.style.display = 'none';
-            this.addButton.classList.remove('disabled-loading');
-        }).run();
+        this.accounts.show();
     }
 
     hide() {
         super.hide();
+        this.accounts.hide();
         if (this._accountsRequest) {
             this._accountsRequest.cancel();
         }
-    }
-
-    addAccount() {
-        window.pageManager.go('add-account', {});
-    }
-
-    populateAccountsList(accounts) {
-        this.accountsList.innerHTML = '';
-        accounts.forEach((account) => {
-            const element = document.createElement('li');
-            element.className = 'accounts-list-account';
-            const name = document.createElement('a');
-            name.className = 'accounts-list-account-name';
-            name.href = '#account?id=' + encodeURIComponent(account['ID']);
-            name.textContent = account['Name'];
-            element.appendChild(name);
-            this.accountsList.appendChild(element);
-        });
     }
 }
 

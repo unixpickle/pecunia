@@ -128,6 +128,6 @@ class MultiAPIRequest {
     }
 
     cancel() {
-        this._requests.forEarch((r) => r.cancel());
+        this._requests.forEach((r) => r.cancel());
     }
 }
