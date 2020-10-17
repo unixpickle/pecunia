@@ -26,14 +26,15 @@
             </div>
             <div class="section" id="summary-section">
                 <h1 class="section-title">Summary</h1>
-                <div class="summary-item" id="summary-item-week">
-                    <label class="summary-item-name">Change over past 7 days:</label>
-                    <label class="summary-item-value"></label>
-                </div>
-                <div class="summary-item" id="summary-item-month">
-                    <label class="summary-item-name">Change over past 28 days:</label>
-                    <label class="summary-item-value"></label>
-                </div>
+                <br>
+                <label>Timespan:</label>
+                <select class="summary-timespan">
+                    <option value="days7">Last 7 days</option>
+                    <option value="days28">Last 28 days</option>
+                </select>
+                <div class="summary-content"></div>
+                <div class="loader"></div>
+                <div class="error-message"></div>
             </div>
         </div>
         <div class="page" id="page-add-account">

@@ -1,12 +1,37 @@
 package pecunia
 
-import "regexp"
+import (
+	"regexp"
+)
 
 // A Filter is an automated mapping which is applied to
 // transactions in an account.
 type Filter interface {
 	// Filter maps transactions ts to new transactions.
 	Filter(ts <-chan *Transaction) <-chan *Transaction
+}
+
+// TransactionsToChan converts a slice of transactions to
+// a channel.
+func TransactionsToChan(ts []*Transaction) <-chan *Transaction {
+	res := make(chan *Transaction, 1)
+	go func() {
+		defer close(res)
+		for _, t := range ts {
+			res <- t
+		}
+	}()
+	return res
+}
+
+// TransactionsToSlice converts a channel of transactions
+// to a slice.
+func TransactionsToSlice(ts <-chan *Transaction) []*Transaction {
+	res := []*Transaction{}
+	for t := range ts {
+		res = append(res, t)
+	}
+	return res
 }
 
 // MultiFilter is a Filter that combines many simple

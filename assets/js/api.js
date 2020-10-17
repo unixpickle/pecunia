@@ -76,6 +76,12 @@ class APIRequestAddAccount extends APIRequest {
     }
 }
 
+class APIRequestAllTransactions extends APIRequest {
+    constructor() {
+        super('/all_transactions');
+    }
+}
+
 class APIRequestTransactions extends APIRequest {
     constructor(accountID) {
         super('/transactions?account_id=' + encodeURIComponent(accountID));

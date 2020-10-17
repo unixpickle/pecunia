@@ -22,6 +22,7 @@ class PageHome extends Page {
 
         this.accounts = new AccountsView();
         this.filters = new FilterEditorView('global-filters-section');
+        this.summary = new SummaryView();
     }
 
     name() {
@@ -32,11 +33,14 @@ class PageHome extends Page {
         super.show();
         this.accounts.show();
         this.filters.show(null);
+        this.summary.show();
     }
 
     hide() {
         super.hide();
         this.accounts.hide();
+        this.filters.hide();
+        this.summary.hide();
         if (this._accountsRequest) {
             this._accountsRequest.cancel();
         }

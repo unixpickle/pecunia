@@ -174,7 +174,14 @@ class AccountTransactionsView extends View {
             const row = document.createElement('tr');
             ['Time', 'Amount', 'Description'].forEach((k) => {
                 const col = document.createElement('td');
-                col.textContent = trans[k];
+                if (k === 'Amount') {
+                    col.textContent = formatMoney(trans[k]);
+                } else if (k === 'Time') {
+                    const date = new Date(trans[k]);
+                    col.textContent = formatDate(date);
+                } else {
+                    col.textContent = trans[k];
+                }
                 row.appendChild(col);
             });
             this.transactions.appendChild(row);
@@ -347,4 +354,92 @@ class FilterEditorView extends View {
         this.categorySection.load(filterData['CategoryFilters']);
         this.replaceSection.load(filterData['ReplaceFilters']);
     }
+}
+
+class SummaryView extends View {
+    constructor() {
+        super(document.getElementById('summary-section'));
+
+        this.timespan = this.element.getElementsByClassName('summary-timespan')[0];
+        this.content = this.element.getElementsByClassName('summary-content')[0];
+        this.loader = this.element.getElementsByClassName('loader')[0];
+        this.error = this.element.getElementsByClassName('error-message')[0];
+
+        this.timespan.addEventListener('change', () => this.populateContent());
+
+        this._data = null;
+        this._request = null;
+    }
+
+    show() {
+        this.timespan.style.display = 'none';
+        this.content.style.display = 'none';
+        this.error.style.display = 'none';
+        this.loader.style.display = 'block';
+
+        this._request = new APIRequestAllTransactions();
+        this._request.onData((transactions) => {
+            this.timespan.style.display = 'block';
+            this.content.style.display = 'block';
+            this._data = transactions;
+            this.populateContent();
+        }).onError((err) => {
+            this.error.textContent = '' + err;
+            this.error.style.display = 'block';
+        }).finally(() => {
+            this.loader.style.display = 'none';
+        }).run();
+    }
+
+    hide() {
+        if (this._request) {
+            this._request.cancel();
+        }
+        this._data = null;
+    }
+
+    populateContent() {
+        if (!this._data) {
+            return;
+        }
+
+        const spanValue = this.timespan.value;
+        let spanMillis = 0;
+        if (spanValue === 'days7') {
+            spanMillis = 7 * 24 * 60 * 60 * 1000;
+        } else if (spanValue === 'days28') {
+            spanMillis = 28 * 24 * 60 * 60 * 1000;
+        }
+        const firstDate = new Date().getTime() - spanMillis;
+        const transactions = this._data.filter((x) => {
+            return new Date(x['Time']).getTime() >= firstDate;
+        });
+
+        let netSpend = 0;
+        transactions.forEach((x) => {
+            netSpend += x['Amount'];
+        });
+
+        this.content.textContent = 'Net spend: ' + formatMoney(netSpend);
+    }
+}
+
+function formatMoney(cents) {
+    if (cents < 0) {
+        return '-' + formatMoney(-cents);
+    }
+    return '$' + (cents / 100).toFixed(2);
+}
+
+function formatDate(date) {
+    // https://stackoverflow.com/questions/11591854/format-date-to-mm-dd-yyyy-in-javascript
+    var year = date.getFullYear();
+
+    var month = (1 + date.getMonth()).toString();
+    month = month.length > 1 ? month : '0' + month;
+
+    var day = date.getDate().toString();
+    day = day.length > 1 ? day : '0' + day;
+
+    return month + '/' + day + '/' + year;
 }

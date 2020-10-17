@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"reflect"
+	"sort"
 	"time"
 
 	"github.com/unixpickle/essentials"
@@ -37,6 +38,7 @@ func main() {
 	http.HandleFunc("/account", DisableCache(server.ServeAccount))
 	http.HandleFunc("/add_account", DisableCache(server.ServeAddAccount))
 	http.HandleFunc("/delete_account", DisableCache(server.ServeDeleteAccount))
+	http.HandleFunc("/all_transactions", DisableCache(server.ServeAllTransactions))
 	http.HandleFunc("/transactions", DisableCache(server.ServeTransactions))
 	http.HandleFunc("/upload_transactions", DisableCache(server.ServeUploadTransactions))
 	http.HandleFunc("/account_filters", DisableCache(server.ServeAccountFilters))
@@ -90,6 +92,44 @@ func (s *Server) ServeDeleteAccount(w http.ResponseWriter, r *http.Request) {
 	} else {
 		s.serveObject(w, "ok")
 	}
+}
+
+func (s *Server) ServeAllTransactions(w http.ResponseWriter, r *http.Request) {
+	transactions := []*pecunia.Transaction{}
+	accts, err := s.Storage.Accounts()
+	if err != nil {
+		s.serveError(w, err, http.StatusInternalServerError)
+		return
+	}
+	for _, acct := range accts {
+		trans, err := s.Storage.Transactions(acct.ID)
+		if err != nil {
+			s.serveError(w, err, http.StatusInternalServerError)
+			return
+		}
+		filter, err := s.Storage.AccountFilters(acct.ID)
+		if err != nil {
+			s.serveError(w, err, http.StatusInternalServerError)
+			return
+		}
+		for t := range filter.Filter(pecunia.TransactionsToChan(trans)) {
+			transactions = append(transactions, t)
+		}
+	}
+	sort.SliceStable(transactions, func(i, j int) bool {
+		return transactions[i].Time.UnixNano() < transactions[j].Time.UnixNano()
+	})
+
+	globalFilters, err := s.Storage.GlobalFilters()
+	if err != nil {
+		s.serveError(w, err, http.StatusInternalServerError)
+		return
+	}
+	transactions = pecunia.TransactionsToSlice(
+		globalFilters.Filter(pecunia.TransactionsToChan(transactions)),
+	)
+
+	s.serveObject(w, transactions)
 }
 
 func (s *Server) ServeTransactions(w http.ResponseWriter, r *http.Request) {
