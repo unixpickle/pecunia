@@ -11,6 +11,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/unixpickle/essentials"
+
 	"github.com/google/uuid"
 )
 
@@ -184,6 +186,10 @@ func (d *DirStorage) AccountFilters(accountID string) (*MultiFilter, error) {
 }
 
 func (d *DirStorage) SetAccountFilters(accountID string, mf *MultiFilter) error {
+	if err := validateFilters(mf); err != nil {
+		return err
+	}
+
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	if err := d.checkAccountID(accountID); err != nil {
@@ -235,6 +241,9 @@ func (d *DirStorage) GlobalFilters() (*MultiFilter, error) {
 }
 
 func (d *DirStorage) SetGlobalFilters(mf *MultiFilter) error {
+	if err := validateFilters(mf); err != nil {
+		return err
+	}
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	return d.writeFile("global_filters.json", mf)
@@ -279,6 +288,25 @@ func validateID(id string) error {
 	regexp := regexp.MustCompilePOSIX("^[0-9a-zA-Z\\-]*$")
 	if !regexp.MatchString(id) {
 		return fmt.Errorf("invalid ID: %s", id)
+	}
+	return nil
+}
+
+func validateFilters(m *MultiFilter) error {
+	for _, p := range m.PatternFilters {
+		if _, err := regexp.CompilePOSIX(p.Pattern); err != nil {
+			return essentials.AddCtx("parse pattern filter", err)
+		}
+	}
+	for _, c := range m.CategoryFilters {
+		if _, err := regexp.CompilePOSIX(c.Pattern); err != nil {
+			return essentials.AddCtx("parse category filter", err)
+		}
+	}
+	for _, r := range m.ReplaceFilters {
+		if _, err := regexp.CompilePOSIX(r.Pattern); err != nil {
+			return essentials.AddCtx("parse replace filter", err)
+		}
 	}
 	return nil
 }
