@@ -23,6 +23,8 @@ class PageHome extends Page {
         this.accounts = new AccountsView();
         this.filters = new FilterEditorView('global-filters-section');
         this.summary = new SummaryView();
+
+        this.filters.onChange = () => this.summary.reload();
     }
 
     name() {

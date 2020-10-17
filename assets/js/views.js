@@ -245,6 +245,8 @@ class FilterEditorView extends View {
         const section = document.getElementById(sectionID);
         super(section.getElementsByClassName('filter-editor')[0]);
 
+        this.onChange = () => null;
+
         this.container = document.createElement('div');
         this.container.style.display = 'none';
         this.element.appendChild(this.container);
@@ -339,6 +341,7 @@ class FilterEditorView extends View {
         this._request = new APIRequestSetFilters(this._accountID, data);
         this._request.onData((filterData) => {
             this.loadFilterData(filterData);
+            this.onChange();
         }).onError((err) => {
             this.error.textContent = '' + err;
             this.error.style.display = 'block';
@@ -398,17 +401,26 @@ class SummaryView extends View {
         this._data = null;
     }
 
+    reload() {
+        this.hide();
+        this.show();
+    }
+
     populateContent() {
         if (!this._data) {
             return;
         }
 
         const spanValue = this.timespan.value;
-        let spanMillis = 0;
+        let spanMillis = 24 * 60 * 60 * 1000;
         if (spanValue === 'days7') {
-            spanMillis = 7 * 24 * 60 * 60 * 1000;
+            spanMillis *= 7;
         } else if (spanValue === 'days28') {
-            spanMillis = 28 * 24 * 60 * 60 * 1000;
+            spanMillis *= 28;
+        } else if (spanValue === 'days90') {
+            spanMillis *= 90;
+        } else if (spanValue === 'all') {
+            spanMillis = Infinity;
         }
         const firstDate = new Date().getTime() - spanMillis;
         const transactions = this._data.filter((x) => {
@@ -420,7 +432,6 @@ class SummaryView extends View {
             netSpend += x['Amount'];
         });
 
-        this.content.textContent = 'Net spend: ' + formatMoney(netSpend);
         this.createBarGraph(transactions);
     }
 
@@ -430,13 +441,17 @@ class SummaryView extends View {
             categories[x['Category']] = (categories[x['Category']] || 0) + x['Amount'];
         });
         let totalAmount = 0;
+        let totalIncome = 0;
         Object.keys(categories).forEach((k) => {
             if (categories[k] > 0) {
+                totalIncome += categories[k];
                 delete categories[k];
             } else {
                 totalAmount += categories[k];
             }
         });
+        this.content.innerHTML = 'Total expenses: ' + formatMoney(totalAmount) + '<br>';
+        this.content.innerHTML += 'Total income: ' + formatMoney(totalIncome);
         const keys = Object.keys(categories);
         keys.sort((a, b) => {
             return categories[a] - categories[b];
@@ -448,20 +463,7 @@ class SummaryView extends View {
         const legend = document.createElement('div');
         legend.className = 'summary-content-legend';
 
-        const colors = [];
-        const numColors = keys.length;
-        for (let i = 0; i < numColors; i++) {
-            const hue = i / numColors;
-            const rgb = HSVtoRGB(hue, 0.65, 0.9);
-            let color = '#';
-            [rgb.r, rgb.g, rgb.b].forEach((comp) => {
-                if (comp < 16) {
-                    color += '0';
-                }
-                color += comp.toString(16);
-            });
-            colors.push(color);
-        }
+        const colors = createColorScheme(keys.length);
 
         keys.forEach((k, i) => {
             const color = colors[i];
@@ -508,6 +510,26 @@ function formatDate(date) {
     day = day.length > 1 ? day : '0' + day;
 
     return month + '/' + day + '/' + year;
+}
+
+function createColorScheme(numColors) {
+    const colors = [];
+    for (let i = 0; i < numColors; i++) {
+        const hue = i / numColors;
+        const rgb = HSVtoRGB(hue, 0.65, 0.9);
+        let color = '#';
+        [rgb.r, rgb.g, rgb.b].forEach((comp) => {
+            if (comp < 16) {
+                color += '0';
+            }
+            color += comp.toString(16);
+        });
+        colors.push(color);
+    }
+    for (let i = 0; i + 1 < numColors; i += 2) {
+        [colors[i], colors[i + 1]] = [colors[i + 1], colors[i]];
+    }
+    return colors;
 }
 
 function HSVtoRGB(h, s, v) {
