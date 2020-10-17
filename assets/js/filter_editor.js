@@ -49,7 +49,7 @@ class FilterEditorSection {
 
     deleteField(field) {
         this.element.removeChild(field.element);
-        this.fields.filter((x) => x !== field);
+        this.fields = this.fields.filter((x) => x !== field);
     }
 }
 

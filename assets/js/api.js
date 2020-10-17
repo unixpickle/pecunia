@@ -109,13 +109,14 @@ class APIRequestFilters extends APIRequest {
 
 class APIRequestSetFilters extends APIRequest {
     constructor(accountIDOrNull, filters) {
-        this.postData = "filters=" + encodeURIComponent(JSON.stringify(filters));
+        let postData = "filters=" + encodeURIComponent(JSON.stringify(filters));
         if (accountIDOrNull === null) {
             super('/set_global_filters');
         } else {
             super('/set_account_filters');
-            this.postData += '&account_id=' + accountIDOrNull;
+            postData += '&account_id=' + accountIDOrNull;
         }
+        this.postData = postData;
     }
 
     _fetch() {

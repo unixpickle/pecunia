@@ -238,25 +238,31 @@ class FilterEditorView extends View {
         const section = document.getElementById(sectionID);
         super(section.getElementsByClassName('filter-editor')[0]);
 
-        this.loader = document.createElement('div');
-        this.loader.className = 'loader';
-        this.element.appendChild(this.loader);
-
-        this.error = document.createElement('div');
-        this.error.className = 'error-message';
-        this.element.appendChild(this.error);
-
         this.container = document.createElement('div');
         this.container.style.display = 'none';
         this.element.appendChild(this.container);
 
         this.createSections();
 
+        this.saveButton = document.createElement('button');
+        this.saveButton.className = 'filter-editor-save-button';
+        this.saveButton.textContent = 'Save filters';
+        this.saveButton.addEventListener('click', () => this.save());
+        this.container.appendChild(this.saveButton);
+
         this.expandButton = document.createElement('button');
         this.expandButton.className = 'filter-editor-expand';
         this.expandButton.addEventListener('click', () => this.toggleExpand());
         this.expandButton.textContent = 'Show filter editor';
         this.element.appendChild(this.expandButton);
+
+        this.error = document.createElement('div');
+        this.error.className = 'error-message';
+        this.element.appendChild(this.error);
+
+        this.loader = document.createElement('div');
+        this.loader.className = 'loader';
+        this.element.appendChild(this.loader);
 
         this._accountID = null;
         this._request = null;
@@ -293,9 +299,7 @@ class FilterEditorView extends View {
 
         this._request = new APIRequestFilters(accountID);
         this._request.onData((filterData) => {
-            this.patternSection.load(filterData['PatternFilters']);
-            this.categorySection.load(filterData['CategoryFilters']);
-            this.replaceSection.load(filterData['ReplaceFilters']);
+            this.loadFilterData(filterData);
             this.expandButton.style.display = 'block';
             this.expandButton.textContent = 'Show filter editor';
             this.container.style.display = 'none';
@@ -311,5 +315,36 @@ class FilterEditorView extends View {
         if (this._request) {
             this._request.cancel();
         }
+    }
+
+    save() {
+        this.expandButton.classList.add('disabled-loading');
+        this.container.classList.add('disabled-loading');
+        this.error.style.display = 'none';
+        this.loader.style.display = 'block';
+
+        const data = {
+            'PatternFilters': this.patternSection.save(),
+            'CategoryFilters': this.categorySection.save(),
+            'ReplaceFilters': this.replaceSection.save(),
+        };
+
+        this._request = new APIRequestSetFilters(this._accountID, data);
+        this._request.onData((filterData) => {
+            this.loadFilterData(filterData);
+        }).onError((err) => {
+            this.error.textContent = '' + err;
+            this.error.style.display = 'block';
+        }).finally(() => {
+            this.loader.style.display = 'none';
+            this.expandButton.classList.remove('disabled-loading');
+            this.container.classList.remove('disabled-loading');
+        }).run();
+    }
+
+    loadFilterData(filterData) {
+        this.patternSection.load(filterData['PatternFilters']);
+        this.categorySection.load(filterData['CategoryFilters']);
+        this.replaceSection.load(filterData['ReplaceFilters']);
     }
 }
