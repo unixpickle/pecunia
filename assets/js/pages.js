@@ -21,6 +21,7 @@ class PageHome extends Page {
         super();
 
         this.accounts = new AccountsView();
+        this.filters = new FilterEditorView('global-filters-section');
     }
 
     name() {
@@ -30,6 +31,7 @@ class PageHome extends Page {
     show() {
         super.show();
         this.accounts.show();
+        this.filters.show(null);
     }
 
     hide() {
@@ -101,6 +103,7 @@ class PageAccount extends Page {
 
         this.title = new AccountTitleView();
         this.upload = new AccountUploadView();
+        this.filters = new FilterEditorView('account-filters-section');
         this.transactions = new AccountTransactionsView();
 
         this.upload.onUploaded = (transactions) => {
@@ -121,6 +124,7 @@ class PageAccount extends Page {
         const accountID = data.id;
         this.title.show(accountID);
         this.upload.show(accountID);
+        this.filters.show(accountID);
         this.transactions.show(accountID);
         this.upload.makeInvisible();
         this.transactions.makeInvisible();

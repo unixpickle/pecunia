@@ -232,3 +232,84 @@ class AccountUploadView extends View {
         }).run();
     }
 }
+
+class FilterEditorView extends View {
+    constructor(sectionID) {
+        const section = document.getElementById(sectionID);
+        super(section.getElementsByClassName('filter-editor')[0]);
+
+        this.loader = document.createElement('div');
+        this.loader.className = 'loader';
+        this.element.appendChild(this.loader);
+
+        this.error = document.createElement('div');
+        this.error.className = 'error-message';
+        this.element.appendChild(this.error);
+
+        this.container = document.createElement('div');
+        this.container.style.display = 'none';
+        this.element.appendChild(this.container);
+
+        this.createSections();
+
+        this.expandButton = document.createElement('button');
+        this.expandButton.className = 'filter-editor-expand';
+        this.expandButton.addEventListener('click', () => this.toggleExpand());
+        this.expandButton.textContent = 'Show filter editor';
+        this.element.appendChild(this.expandButton);
+
+        this._accountID = null;
+        this._request = null;
+    }
+
+    createSections() {
+        this.patternSection = new FilterEditorSection('Exclude patterns', FieldEditorPatternField);
+        this.container.appendChild(this.patternSection.element);
+
+        this.categorySection = new FilterEditorSection('Categorize', FieldEditorCategoryField);
+        this.container.appendChild(this.categorySection.element);
+
+        this.replaceSection = new FilterEditorSection('Edit description', FieldEditorReplaceField);
+        this.container.appendChild(this.replaceSection.element);
+    }
+
+    toggleExpand() {
+        if (this.container.style.display === 'none') {
+            this.container.style.display = 'block';
+            this.expandButton.textContent = 'Hide filter editor';
+        } else {
+            this.container.style.display = 'none';
+            this.expandButton.textContent = 'Show filter editor';
+        }
+    }
+
+    show(accountID) {
+        this._accountID = accountID;
+
+        this.expandButton.style.display = 'none';
+        this.error.style.display = 'none';
+        this.container.style.display = 'none';
+        this.loader.style.display = 'block';
+
+        this._request = new APIRequestFilters(accountID);
+        this._request.onData((filterData) => {
+            this.patternSection.load(filterData['PatternFilters']);
+            this.categorySection.load(filterData['CategoryFilters']);
+            this.replaceSection.load(filterData['ReplaceFilters']);
+            this.expandButton.style.display = 'block';
+            this.expandButton.textContent = 'Show filter editor';
+            this.container.style.display = 'none';
+        }).onError((err) => {
+            this.error.textContent = '' + err;
+            this.error.style.display = 'block';
+        }).finally(() => {
+            this.loader.style.display = 'none';
+        }).run();
+    }
+
+    hide() {
+        if (this._request) {
+            this._request.cancel();
+        }
+    }
+}

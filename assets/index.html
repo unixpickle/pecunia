@@ -5,8 +5,10 @@
         <title>Pecunia</title>
         <script src="js/api.js"></script>
         <script src="js/views.js"></script>
+        <script src="js/filter_editor.js"></script>
         <script src="js/pages.js"></script>
         <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="css/filter_editor.css">
     </head>
     <body>
         <div class="page" id="page-home">
@@ -17,6 +19,10 @@
                 <ol class="accounts-list" id="accounts-list"></ol>
                 <div class="error-message" id="accounts-list-error"></div>
                 <button class="add-button" id="add-account-button">Add Account</button>
+            </div>
+            <div class="section" id="global-filters-section">
+                <h1 class="section-title">Global filters</h1>
+                <div class="filter-editor"></div>
             </div>
             <div class="section" id="summary-section">
                 <h1 class="section-title">Summary</h1>
@@ -60,6 +66,10 @@
                 <button class="upload-button">Upload</button>
                 <div class="loader"></div>
                 <div class="error-message"></div>
+            </div>
+            <div class="section" id="account-filters-section">
+                <h1 class="section-title">Account filters</h1>
+                <div class="filter-editor"></div>
             </div>
             <div class="section" id="account-transactions-section">
                 <h1 class="section-title">Transactions</h1>
