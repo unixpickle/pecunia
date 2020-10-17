@@ -172,7 +172,7 @@ func (d *DirStorage) AccountFilters(accountID string) (*MultiFilter, error) {
 		return nil, err
 	}
 
-	name := fmt.Sprintf("account_filters_%s.json", accountID)
+	name := fmt.Sprintf("accountfilters_%s.json", accountID)
 	var filters MultiFilter
 	if err := d.readFile(name, &filters); err != nil {
 		if os.IsNotExist(err) {
@@ -189,7 +189,7 @@ func (d *DirStorage) SetAccountFilters(accountID string, mf *MultiFilter) error 
 	if err := d.checkAccountID(accountID); err != nil {
 		return err
 	}
-	name := fmt.Sprintf("account_filters_%s.json", accountID)
+	name := fmt.Sprintf("accountfilters_%s.json", accountID)
 	return d.writeFile(name, mf)
 }
 
@@ -204,7 +204,7 @@ func (d *DirStorage) DeleteAccount(accountID string) error {
 	accountFile := fmt.Sprintf("account_%s.json", accountID)
 	otherFiles := []string{
 		fmt.Sprintf("transactions_%s.json", accountID),
-		fmt.Sprintf("account_filters_%s.json", accountID),
+		fmt.Sprintf("accountfilters_%s.json", accountID),
 	}
 
 	if err := os.Remove(filepath.Join(d.Dir, accountFile)); err != nil {
