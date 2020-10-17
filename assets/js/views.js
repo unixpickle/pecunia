@@ -421,6 +421,72 @@ class SummaryView extends View {
         });
 
         this.content.textContent = 'Net spend: ' + formatMoney(netSpend);
+        this.createBarGraph(transactions);
+    }
+
+    createBarGraph(transactions) {
+        const categories = {};
+        transactions.forEach((x) => {
+            categories[x['Category']] = (categories[x['Category']] || 0) + x['Amount'];
+        });
+        let totalAmount = 0;
+        Object.keys(categories).forEach((k) => {
+            if (categories[k] > 0) {
+                delete categories[k];
+            } else {
+                totalAmount += categories[k];
+            }
+        });
+        const keys = Object.keys(categories);
+        keys.sort((a, b) => {
+            return categories[a] - categories[b];
+        });
+
+        const barGraph = document.createElement('div');
+        barGraph.className = 'summary-content-bar-graph';
+
+        const legend = document.createElement('div');
+        legend.className = 'summary-content-legend';
+
+        const colors = [];
+        const numColors = keys.length;
+        for (let i = 0; i < numColors; i++) {
+            const hue = i / numColors;
+            const rgb = HSVtoRGB(hue, 0.65, 0.9);
+            let color = '#';
+            [rgb.r, rgb.g, rgb.b].forEach((comp) => {
+                if (comp < 16) {
+                    color += '0';
+                }
+                color += comp.toString(16);
+            });
+            colors.push(color);
+        }
+
+        keys.forEach((k, i) => {
+            const color = colors[i];
+            const fraction = categories[k] / totalAmount;
+            const bar = document.createElement('div');
+            bar.className = 'summary-content-bar';
+            bar.style.width = (fraction * 100).toFixed(3) + '%';
+            bar.style.backgroundColor = color;
+            bar.title = (k || 'Unknown') + ': ' + formatMoney(categories[k]);
+            barGraph.appendChild(bar);
+            const legendItem = document.createElement('div');
+            legendItem.className = 'summary-content-legend-item';
+            legendItem.title = bar.title;
+            const swatch = document.createElement('div');
+            swatch.className = 'summary-content-swatch';
+            swatch.style.backgroundColor = color;
+            legendItem.appendChild(swatch);
+            const label = document.createElement('label');
+            label.textContent = k || 'Unknown';
+            legendItem.appendChild(label);
+            legend.appendChild(legendItem);
+        });
+
+        this.content.appendChild(barGraph);
+        this.content.appendChild(legend);
     }
 }
 
@@ -442,4 +508,27 @@ function formatDate(date) {
     day = day.length > 1 ? day : '0' + day;
 
     return month + '/' + day + '/' + year;
+}
+
+function HSVtoRGB(h, s, v) {
+    // https://stackoverflow.com/questions/17242144/javascript-convert-hsb-hsv-color-to-rgb-accurately
+    var r, g, b, i, f, p, q, t;
+    i = Math.floor(h * 6);
+    f = h * 6 - i;
+    p = v * (1 - s);
+    q = v * (1 - f * s);
+    t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+        case 0: r = v, g = t, b = p; break;
+        case 1: r = q, g = v, b = p; break;
+        case 2: r = p, g = v, b = t; break;
+        case 3: r = p, g = q, b = v; break;
+        case 4: r = t, g = p, b = v; break;
+        case 5: r = v, g = p, b = q; break;
+    }
+    return {
+        r: Math.round(r * 255),
+        g: Math.round(g * 255),
+        b: Math.round(b * 255)
+    };
 }

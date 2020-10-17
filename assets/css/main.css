@@ -59,3 +59,29 @@ html, body {
     margin: 0 0 0.5em 0;
     font-size: 1.5em;
 }
+
+.summary-content {
+    margin-top: 10px;
+}
+
+.summary-content-bar-graph {
+    position: relative;
+    height: 30px;
+    width: 100%;
+}
+
+.summary-content-bar {
+    float: left;
+    height: 100%;
+}
+
+.summary-content-legend-item {
+    display: inline-block;
+    margin: 10px;
+}
+
+.summary-content-swatch {
+    width: 15px;
+    height: 15px;
+    display: inline-block;
+}
