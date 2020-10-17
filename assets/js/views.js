@@ -93,12 +93,12 @@ class AccountTitleView extends View {
         this._request = null;
     }
 
-    show(account_id) {
+    show(accountID) {
         this.title.style.display = 'none';
         this.error.style.display = 'none';
         this.loader.style.display = 'block';
 
-        this._request = new APIRequestAccount(account_id);
+        this._request = new APIRequestAccount(accountID);
         this._request.onData((account) => {
             this._account = account;
             this.title.style.display = 'block';
@@ -131,13 +131,13 @@ class AccountTransactionsView extends View {
         this._request = null;
     }
 
-    show(account_id) {
+    show(accountID) {
         this.error.style.display = 'none';
         this.empty.style.display = 'none';
         this.transactions.style.display = 'none';
         this.loader.style.display = 'block';
 
-        this._request = new APIRequestTransactions(account_id);
+        this._request = new APIRequestTransactions(accountID);
         this._request.onData((transactions) => {
             this.populateList(transactions);
         }).onError((err) => {
@@ -196,11 +196,11 @@ class AccountUploadView extends View {
         this.button.addEventListener('click', () => this.upload());
 
         this._request = null;
-        this._account_id = null;
+        this._accountID = null;
     }
 
-    show(account_id) {
-        this._account_id = account_id;
+    show(accountID) {
+        this._accountID = accountID;
         // TODO: clear the upload input, reset the state, etc.
     }
 
@@ -219,7 +219,7 @@ class AccountUploadView extends View {
         this.button.classList.add('disabled-loading');
 
         const file = this.input.files[0];
-        this._request = new APIRequestUploadTransactions(this._account_id, file);
+        this._request = new APIRequestUploadTransactions(this._accountID, file);
         this._request.onData((transactions) => {
             this.onUploaded(transactions);
         }).onError((err) => {
