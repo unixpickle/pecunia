@@ -38,6 +38,7 @@ func main() {
 	http.HandleFunc("/account", DisableCache(server.ServeAccount))
 	http.HandleFunc("/add_account", DisableCache(server.ServeAddAccount))
 	http.HandleFunc("/delete_account", DisableCache(server.ServeDeleteAccount))
+	http.HandleFunc("/clear_account", DisableCache(server.ServeClearAccount))
 	http.HandleFunc("/all_transactions", DisableCache(server.ServeAllTransactions))
 	http.HandleFunc("/transactions", DisableCache(server.ServeTransactions))
 	http.HandleFunc("/upload_transactions", DisableCache(server.ServeUploadTransactions))
@@ -91,6 +92,15 @@ func (s *Server) ServeDeleteAccount(w http.ResponseWriter, r *http.Request) {
 		s.serveError(w, err, http.StatusInternalServerError)
 	} else {
 		s.serveObject(w, "ok")
+	}
+}
+
+func (s *Server) ServeClearAccount(w http.ResponseWriter, r *http.Request) {
+	accountID := r.FormValue("account_id")
+	if err := s.Storage.SetTransactions(accountID, []*pecunia.Transaction{}); err != nil {
+		s.serveError(w, err, http.StatusInternalServerError)
+	} else {
+		s.serveObject(w, []*pecunia.Transaction{})
 	}
 }
 

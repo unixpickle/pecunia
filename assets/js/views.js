@@ -134,7 +134,8 @@ class AccountTitleView extends View {
     }
 
     clearAccount() {
-
+        this.runUpdateRequest('Do you really want to clear all transactions in this account?',
+            APIRequestClearAccount, () => this.onClear());
     }
 
     runUpdateRequest(message, requestClass, onDone) {
