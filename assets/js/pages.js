@@ -115,6 +115,9 @@ class PageAccount extends Page {
         this.upload.onUploaded = (transactions) => {
             this.transactions.populateList(transactions);
         };
+        this.title.onClear = () => {
+            this.transactions.populateList([]);
+        }
         this.title.onReady = () => {
             this.upload.makeVisible();
             this.transactions.makeVisible();

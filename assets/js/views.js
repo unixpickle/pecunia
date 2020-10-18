@@ -84,6 +84,7 @@ class AccountTitleView extends View {
         super(document.getElementById('account-title-section'));
 
         this.onReady = () => null;
+        this.onClear = () => null;
 
         this.title = this.element.getElementsByClassName('section-title')[0];
         this.loader = this.element.getElementsByClassName('loader')[0];
@@ -128,31 +129,36 @@ class AccountTitleView extends View {
     }
 
     deleteAccount() {
+        this.runUpdateRequest('Do you really want to delete this account?',
+            APIRequestDeleteAccount, () => pageManager.go('home', {}));
+    }
+
+    clearAccount() {
+
+    }
+
+    runUpdateRequest(message, requestClass, onDone) {
         if (this._account === null) {
             return;
         }
-        if (!confirm('Do you really want to delete this account?')) {
+        if (!confirm(message)) {
             return;
         }
         this.title.style.display = 'none';
         this.error.style.display = 'none';
         this.buttonSet.style.display = 'none';
         this.loader.style.display = 'block';
-        this._request = new APIRequestDeleteAccount(this._account['ID']);
+        this._request = new requestClass(this._account['ID']);
         this._request.onData(() => {
-            pageManager.go('home', {});
+            onDone();
         }).onError((err) => {
-            this.title.style.display = 'block';
             this.error.style.display = 'block';
-            this.buttonSet.style.display = 'block';
             this.error.textContent = '' + err;
         }).finally(() => {
+            this.title.style.display = 'block';
+            this.buttonSet.style.display = 'block';
             this.loader.style.display = 'none';
         }).run();
-    }
-
-    clearAccount() {
-
     }
 }
 
