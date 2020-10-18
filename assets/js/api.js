@@ -76,6 +76,12 @@ class APIRequestAddAccount extends APIRequest {
     }
 }
 
+class APIRequestDeleteAccount extends APIRequest {
+    constructor(accountID) {
+        super('/delete_account?account_id=' + encodeURIComponent(accountID));
+    }
+}
+
 class APIRequestAllTransactions extends APIRequest {
     constructor() {
         super('/all_transactions');

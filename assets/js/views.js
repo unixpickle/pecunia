@@ -88,6 +88,12 @@ class AccountTitleView extends View {
         this.title = this.element.getElementsByClassName('section-title')[0];
         this.loader = this.element.getElementsByClassName('loader')[0];
         this.error = this.element.getElementsByClassName('error-message')[0];
+        this.buttonSet = this.element.getElementsByClassName('button-set')[0];
+        this.deleteButton = this.element.getElementsByClassName('delete-button')[0];
+        this.clearButton = this.element.getElementsByClassName('clear-button')[0];
+
+        this.deleteButton.addEventListener('click', () => this.deleteAccount());
+        this.clearButton.addEventListener('click', () => this.clearAccount());
 
         this._account = null;
         this._request = null;
@@ -96,6 +102,7 @@ class AccountTitleView extends View {
     show(accountID) {
         this.title.style.display = 'none';
         this.error.style.display = 'none';
+        this.buttonSet.style.display = 'none';
         this.loader.style.display = 'block';
 
         this._request = new APIRequestAccount(accountID);
@@ -103,6 +110,7 @@ class AccountTitleView extends View {
             this._account = account;
             this.title.style.display = 'block';
             this.title.textContent = account['Name'];
+            this.buttonSet.style.display = 'block';
             this.onReady();
         }).onError((err) => {
             this.error.style.display = 'block';
@@ -116,6 +124,35 @@ class AccountTitleView extends View {
         if (this._request) {
             this._request.cancel();
         }
+        this._account = null;
+    }
+
+    deleteAccount() {
+        if (this._account === null) {
+            return;
+        }
+        if (!confirm('Do you really want to delete this account?')) {
+            return;
+        }
+        this.title.style.display = 'none';
+        this.error.style.display = 'none';
+        this.buttonSet.style.display = 'none';
+        this.loader.style.display = 'block';
+        this._request = new APIRequestDeleteAccount(this._account['ID']);
+        this._request.onData(() => {
+            pageManager.go('home', {});
+        }).onError((err) => {
+            this.title.style.display = 'block';
+            this.error.style.display = 'block';
+            this.buttonSet.style.display = 'block';
+            this.error.textContent = '' + err;
+        }).finally(() => {
+            this.loader.style.display = 'none';
+        }).run();
+    }
+
+    clearAccount() {
+
     }
 }
 
