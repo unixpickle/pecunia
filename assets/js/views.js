@@ -450,8 +450,8 @@ class SummaryView extends View {
                 totalAmount += categories[k];
             }
         });
-        this.content.innerHTML = 'Total expenses: ' + formatMoney(totalAmount) + '<br>';
-        this.content.innerHTML += 'Total income: ' + formatMoney(totalIncome);
+        this.content.innerHTML = 'Total income: ' + formatMoney(totalIncome) + '<br>';
+        this.content.innerHTML += 'Total expenses: ' + formatMoney(totalAmount);
         const keys = Object.keys(categories);
         keys.sort((a, b) => {
             return categories[a] - categories[b];
