@@ -211,25 +211,8 @@ class AccountTransactionsView extends View {
             return;
         }
         this.empty.style.display = 'none';
-        this.transactions.style.display = 'block';
-
-        this.transactions.innerHTML = '<tr><th>Date</th><th>Amount</th><th>About</th></tr>';
-        transactions.reverse().forEach((trans) => {
-            const row = document.createElement('tr');
-            ['Time', 'Amount', 'Description'].forEach((k) => {
-                const col = document.createElement('td');
-                if (k === 'Amount') {
-                    col.textContent = formatMoney(trans[k]);
-                } else if (k === 'Time') {
-                    const date = new Date(trans[k]);
-                    col.textContent = formatDate(date);
-                } else {
-                    col.textContent = trans[k];
-                }
-                row.appendChild(col);
-            });
-            this.transactions.appendChild(row);
-        });
+        this.transactions.style.display = 'table';
+        fillTransactionsTable(this.transactions, transactions);
     }
 }
 
@@ -426,7 +409,7 @@ class SummaryView extends View {
 
         this._request = new APIRequestAllTransactions();
         this._request.onData((transactions) => {
-            this.timespan.style.display = 'block';
+            this.timespan.style.display = 'inline-block';
             this.content.style.display = 'block';
             this._data = transactions;
             this.populateContent();
@@ -477,6 +460,7 @@ class SummaryView extends View {
         });
 
         this.createBarGraph(transactions);
+        this.createUnknownTransactionTable(transactions);
     }
 
     createBarGraph(transactions) {
@@ -534,6 +518,66 @@ class SummaryView extends View {
         this.content.appendChild(barGraph);
         this.content.appendChild(legend);
     }
+
+    createUnknownTransactionTable(transactions) {
+        const unknown = transactions
+            .filter((x) => x['Category'] === '')
+            .sort((x, y) => Math.abs(x['Amount']) - Math.abs(y['Amount']));
+        if (unknown.length === 0) {
+            return;
+        }
+        let smallUnknown = unknown;
+        if (unknown.length > 5) {
+            smallUnknown = unknown.slice(unknown.length - 5);
+        }
+
+        const heading = document.createElement('h2');
+        heading.className = 'section-subtitle';
+        heading.textContent = 'Uncategorized transactions';
+        this.content.appendChild(heading);
+
+        const table = document.createElement('table');
+        table.className = 'transactions';
+        fillTransactionsTable(table, smallUnknown);
+
+        if (smallUnknown.length < unknown.length) {
+            const expandButton = document.createElement('button');
+            expandButton.className = 'summary-expand';
+            expandButton.textContent = 'Show all';
+            expandButton.addEventListener('click', () => {
+                if (expandButton.textContent === 'Show all') {
+                    expandButton.textContent = 'Show less';
+                    fillTransactionsTable(table, unknown);
+                } else {
+                    expandButton.textContent = 'Show all';
+                    fillTransactionsTable(table, smallUnknown);
+                }
+            });
+            this.content.appendChild(expandButton);
+        }
+
+        this.content.appendChild(table);
+    }
+}
+
+function fillTransactionsTable(table, transactions) {
+    table.innerHTML = '<tr><th>Date</th><th>Amount</th><th>About</th></tr>';
+    transactions.slice().reverse().forEach((trans) => {
+        const row = document.createElement('tr');
+        ['Time', 'Amount', 'Description'].forEach((k) => {
+            const col = document.createElement('td');
+            if (k === 'Amount') {
+                col.textContent = formatMoney(trans[k]);
+            } else if (k === 'Time') {
+                const date = new Date(trans[k]);
+                col.textContent = formatDate(date);
+            } else {
+                col.textContent = trans[k];
+            }
+            row.appendChild(col);
+        });
+        table.appendChild(row);
+    });
 }
 
 function formatMoney(cents) {

@@ -61,6 +61,13 @@ html, body {
     font-size: 1.5em;
 }
 
+.section-subtitle {
+    padding: 0 0 0.2em 0;
+    margin: 0.5em 0 0.5em 0;
+    font-size: 1.2em;
+    border-bottom: 1px solid #d5d5d5;
+}
+
 @media (max-width: 500px) {
     .transactions {
         font-size: 0.7em;
@@ -99,4 +106,9 @@ html, body {
     display: inline-block;
     line-height: 2em;
     font-style: oblique;
+}
+
+.summary-expand {
+    display: block;
+    margin: 0 auto 20px auto;
 }
