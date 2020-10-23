@@ -26,17 +26,30 @@
             </div>
             <div class="section" id="summary-section">
                 <h1 class="section-title">Summary</h1>
-                <br>
-                <label>Timespan:</label>
-                <select class="summary-timespan">
-                    <option value="days7">Last 7 days</option>
-                    <option value="days28">Last 28 days</option>
-                    <option value="days90">Last 90 days</option>
-                    <option value="all">All time</option>
-                </select>
-                <div class="summary-content"></div>
                 <div class="loader"></div>
                 <div class="error-message"></div>
+                <div class="summary-content">
+                    <label>Timespan:</label>
+                    <select class="summary-timespan">
+                        <option value="days7">Last 7 days</option>
+                        <option value="days28">Last 28 days</option>
+                        <option value="days90">Last 90 days</option>
+                        <option value="all">All time</option>
+                    </select>
+
+                    <label>Total income:</label>
+                    <label class="summary-total-income"></label>
+                    <br>
+                    <label>Total expenses:</label>
+                    <label class="summary-total-expenses"></label>
+                    <br>
+                    <br>
+                    <div class="summary-content-bar-graph"></div>
+                    <div class="summary-content-legend"></div>
+                    <h2 class="section-subtitle">Uncategorized transactions</h2>
+                    <button class="summary-expand">Show all</button>
+                    <table class="transactions"></table>
+                </div>
             </div>
         </div>
         <div class="page" id="page-add-account">

@@ -390,26 +390,30 @@ class SummaryView extends View {
     constructor() {
         super(document.getElementById('summary-section'));
 
-        this.timespan = this.element.getElementsByClassName('summary-timespan')[0];
         this.content = this.element.getElementsByClassName('summary-content')[0];
         this.loader = this.element.getElementsByClassName('loader')[0];
         this.error = this.element.getElementsByClassName('error-message')[0];
 
+        this.timespan = this.element.getElementsByClassName('summary-timespan')[0];
         this.timespan.addEventListener('change', () => this.populateContent());
+        this.totalIncome = this.element.getElementsByClassName('summary-total-income')[0];
+        this.totalExpenses = this.element.getElementsByClassName('summary-total-expenses')[0];
+        this.barGraph = this.element.getElementsByClassName('summary-content-bar-graph')[0];
+        this.legend = this.element.getElementsByClassName('summary-content-legend')[0];
+        this.expandButton = this.element.getElementsByClassName('summary-expand')[0];
+        this.transactions = this.element.getElementsByClassName('transactions')[0];
 
         this._data = null;
         this._request = null;
     }
 
     show() {
-        this.timespan.style.display = 'none';
         this.content.style.display = 'none';
         this.error.style.display = 'none';
         this.loader.style.display = 'block';
 
         this._request = new APIRequestAllTransactions();
         this._request.onData((transactions) => {
-            this.timespan.style.display = 'inline-block';
             this.content.style.display = 'block';
             this._data = transactions;
             this.populateContent();
@@ -454,11 +458,6 @@ class SummaryView extends View {
             return new Date(x['Time']).getTime() >= firstDate;
         });
 
-        let netSpend = 0;
-        transactions.forEach((x) => {
-            netSpend += x['Amount'];
-        });
-
         this.createBarGraph(transactions);
         this.createUnknownTransactionTable(transactions);
     }
@@ -478,18 +477,17 @@ class SummaryView extends View {
                 totalAmount += categories[k];
             }
         });
-        this.content.innerHTML = 'Total income: ' + formatMoney(totalIncome) + '<br>';
-        this.content.innerHTML += 'Total expenses: ' + formatMoney(totalAmount);
+        this.totalIncome.textContent = formatMoney(totalIncome);
+        this.totalExpenses.textContent = formatMoney(totalAmount);
+
         const keys = Object.keys(categories);
         keys.sort((a, b) => {
             return categories[a] - categories[b];
         });
 
-        const barGraph = document.createElement('div');
-        barGraph.className = 'summary-content-bar-graph';
 
-        const legend = document.createElement('div');
-        legend.className = 'summary-content-legend';
+        this.barGraph.innerHTML = '';
+        this.legend.innerHTML = '';
 
         const colors = createColorScheme(keys.length);
 
@@ -501,7 +499,7 @@ class SummaryView extends View {
             bar.style.width = (fraction * 100).toFixed(3) + '%';
             bar.style.backgroundColor = color;
             bar.title = (k || 'Unknown') + ': ' + formatMoney(categories[k]);
-            barGraph.appendChild(bar);
+            this.barGraph.appendChild(bar);
             const legendItem = document.createElement('div');
             legendItem.className = 'summary-content-legend-item';
             legendItem.title = bar.title;
@@ -512,11 +510,8 @@ class SummaryView extends View {
             const label = document.createElement('label');
             label.textContent = k || 'Unknown';
             legendItem.appendChild(label);
-            legend.appendChild(legendItem);
+            this.legend.appendChild(legendItem);
         });
-
-        this.content.appendChild(barGraph);
-        this.content.appendChild(legend);
     }
 
     createUnknownTransactionTable(transactions) {
@@ -531,32 +526,24 @@ class SummaryView extends View {
             smallUnknown = unknown.slice(unknown.length - 5);
         }
 
-        const heading = document.createElement('h2');
-        heading.className = 'section-subtitle';
-        heading.textContent = 'Uncategorized transactions';
-        this.content.appendChild(heading);
+        fillTransactionsTable(this.transactions, smallUnknown);
 
-        const table = document.createElement('table');
-        table.className = 'transactions';
-        fillTransactionsTable(table, smallUnknown);
-
-        if (smallUnknown.length < unknown.length) {
-            const expandButton = document.createElement('button');
-            expandButton.className = 'summary-expand';
-            expandButton.textContent = 'Show all';
-            expandButton.addEventListener('click', () => {
-                if (expandButton.textContent === 'Show all') {
-                    expandButton.textContent = 'Show less';
-                    fillTransactionsTable(table, unknown);
-                } else {
-                    expandButton.textContent = 'Show all';
-                    fillTransactionsTable(table, smallUnknown);
-                }
-            });
-            this.content.appendChild(expandButton);
+        if (smallUnknown.length === unknown.length) {
+            this.expandButton.style.display = 'none';
+            return;
         }
 
-        this.content.appendChild(table);
+        this.expandButton.style.display = 'inline-block';
+        this.expandButton.textContent = 'Show all';
+        this.expandButton.onclick = () => {
+            if (this.expandButton.textContent === 'Show all') {
+                this.expandButton.textContent = 'Show less';
+                fillTransactionsTable(this.transactions, unknown);
+            } else {
+                this.expandButton.textContent = 'Show all';
+                fillTransactionsTable(this.transactions, smallUnknown);
+            }
+        };
     }
 }
 
