@@ -1,6 +1,6 @@
 # pecunia
 
-**pecunia** is a small locally-hosted web application for tracking your spending.
+**pecunia** is a small locally-hosted web application for tracking your spending. The main goal is to help you categorize your purchasing to track what fraction of your money is going to which categories.
 
 The intended usage flows as follows:
 
