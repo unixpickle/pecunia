@@ -218,7 +218,7 @@ class AccountUploadView extends View {
 
     show(accountID) {
         this._accountID = accountID;
-        // TODO: clear the upload input, reset the state, etc.
+        this.input.value = '';
     }
 
     hide() {
@@ -228,7 +228,10 @@ class AccountUploadView extends View {
     }
 
     upload() {
-        // TODO: check if a file has been selected.
+        if (this.input.files.length === 0) {
+            alert('No files selected!');
+            return;
+        }
         const file = this.input.files[0];
         this._request = new APIRequestUploadTransactions(this._accountID, file);
         this._request.onData((transactions) => {
