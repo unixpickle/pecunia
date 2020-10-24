@@ -268,9 +268,10 @@ func (s *Server) serveObject(w http.ResponseWriter, obj interface{}) {
 func DisableCache(f http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// https://stackoverflow.com/questions/33880343/go-webserver-dont-cache-files-using-timestamp
+		// https://gist.github.com/alxshelepenok/0d5c2fb110e19203655e04f4a52e9d87
 		headers := map[string]string{
 			"Expires":         time.Unix(0, 0).Format(time.RFC1123),
-			"Cache-Control":   "no-cache, private, max-age=0",
+			"Cache-Control":   "no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0",
 			"Pragma":          "no-cache",
 			"X-Accel-Expires": "0",
 		}

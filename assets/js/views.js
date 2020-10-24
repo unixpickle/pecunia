@@ -248,13 +248,15 @@ class AccountUploadView extends View {
 class FilterEditorView extends View {
     constructor(sectionID) {
         const section = document.getElementById(sectionID);
-        super(section.getElementsByClassName('filter-editor')[0]);
+        super(section);
+
+        this.generated = section.getElementsByClassName('filter-editor')[0];
 
         this.onChange = () => null;
 
         this.container = document.createElement('div');
         this.container.style.display = 'none';
-        this.element.appendChild(this.container);
+        this.generated.appendChild(this.container);
 
         this.createSections();
 
@@ -268,15 +270,15 @@ class FilterEditorView extends View {
         this.expandButton.className = 'filter-editor-expand';
         this.expandButton.addEventListener('click', () => this.toggleExpand());
         this.expandButton.textContent = 'Show filter editor';
-        this.element.appendChild(this.expandButton);
+        this.generated.appendChild(this.expandButton);
 
         this.error = document.createElement('div');
         this.error.className = 'error-message';
-        this.element.appendChild(this.error);
+        this.generated.appendChild(this.error);
 
         this.loader = document.createElement('div');
         this.loader.className = 'loader';
-        this.element.appendChild(this.loader);
+        this.generated.appendChild(this.loader);
 
         this._accountID = null;
         this._request = null;

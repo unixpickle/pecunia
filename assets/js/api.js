@@ -62,6 +62,9 @@ class APIRequest {
                 backup = (err) => null;
             }
             this._errorCallback = (err) => {
+                if ('' + err === 'TypeError: Failed to fetch') {
+                    err = 'Failed to fetch content. Check your internet connection.';
+                }
                 errorElement.style.display = 'block';
                 errorElement.textContent = '' + err;
                 backup(err);

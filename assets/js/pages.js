@@ -120,6 +120,7 @@ class PageAccount extends Page {
         }
         this.title.onReady = () => {
             this.upload.makeVisible();
+            this.filters.makeVisible();
             this.transactions.makeVisible();
         };
     }
@@ -136,6 +137,7 @@ class PageAccount extends Page {
         this.filters.show(accountID);
         this.transactions.show(accountID);
         this.upload.makeInvisible();
+        this.filters.makeInvisible();
         this.transactions.makeInvisible();
     }
 
@@ -143,6 +145,7 @@ class PageAccount extends Page {
         super.hide();
         this.title.hide();
         this.upload.hide();
+        this.filters.hide();
         this.transactions.hide();
     }
 }
