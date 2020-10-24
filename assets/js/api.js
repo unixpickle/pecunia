@@ -43,6 +43,47 @@ class APIRequest {
         return this;
     }
 
+    runView(loaderElement, errorElement, hideElements, disableElements) {
+        if (loaderElement) {
+            loaderElement.style.display = 'block';
+            let backup = this._finallyCallback;
+            if (backup === null) {
+                backup = () => null;
+            }
+            this._finallyCallback = () => {
+                loaderElement.style.display = 'none';
+                backup();
+            }
+        }
+        if (errorElement) {
+            errorElement.style.display = 'none';
+            let backup = this._errorCallback;
+            if (backup === null) {
+                backup = (err) => null;
+            }
+            this._errorCallback = (err) => {
+                errorElement.style.display = 'block';
+                errorElement.textContent = '' + err;
+                backup(err);
+            };
+        }
+        if (hideElements) {
+            hideElements.forEach((x) => x.style.display = 'none');
+        }
+        if (disableElements) {
+            disableElements.forEach((x) => x.classList.add('disabled-loading'));
+            let backup = this._finallyCallback;
+            if (backup === null) {
+                backup = () => null;
+            }
+            this._finallyCallback = () => {
+                disableElements.forEach((x) => x.classList.remove('disabled-loading'));
+                backup();
+            }
+        }
+        return this.run();
+    }
+
     _fetch() {
         return fetch(this.url);
     }

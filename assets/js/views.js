@@ -33,12 +33,8 @@ class AccountsView extends View {
     }
 
     show() {
-        this.list.style.display = 'none';
-        this.empty.style.display = 'none';
-        this.error.style.display = 'none';
-        this.addButton.style.display = 'none';
-        this.loader.style.display = 'block';
-        this._request = new APIRequestAccounts().onData((accounts) => {
+        this._request = new APIRequestAccounts();
+        this._request.onData((accounts) => {
             if (accounts.length === 0) {
                 this.empty.style.display = 'block';
             } else {
@@ -46,12 +42,12 @@ class AccountsView extends View {
                 this.list.style.display = 'block';
             }
             this.addButton.style.display = 'block';
-        }).onError((err) => {
-            this.error.style.display = 'block';
-            this.error.textContent = '' + err;
-        }).finally(() => {
-            this.loader.style.display = 'none';
-        }).run();
+        }).runView(
+            this.loader,
+            this.error,
+            [this.addButton, this.list, this.empty],
+            null,
+        );
     }
 
     hide() {
@@ -101,11 +97,6 @@ class AccountTitleView extends View {
     }
 
     show(accountID) {
-        this.title.style.display = 'none';
-        this.error.style.display = 'none';
-        this.buttonSet.style.display = 'none';
-        this.loader.style.display = 'block';
-
         this._request = new APIRequestAccount(accountID);
         this._request.onData((account) => {
             this._account = account;
@@ -113,12 +104,12 @@ class AccountTitleView extends View {
             this.title.textContent = account['Name'];
             this.buttonSet.style.display = 'block';
             this.onReady();
-        }).onError((err) => {
-            this.error.style.display = 'block';
-            this.error.textContent = '' + err;
-        }).finally(() => {
-            this.loader.style.display = 'none';
-        }).run();
+        }).runView(
+            this.loader,
+            this.error,
+            [this.title, this.buttonSet],
+            null,
+        );
     }
 
     hide() {
@@ -145,21 +136,18 @@ class AccountTitleView extends View {
         if (!confirm(message)) {
             return;
         }
-        this.title.style.display = 'none';
-        this.error.style.display = 'none';
-        this.buttonSet.style.display = 'none';
-        this.loader.style.display = 'block';
         this._request = new requestClass(this._account['ID']);
         this._request.onData(() => {
             onDone();
-        }).onError((err) => {
-            this.error.style.display = 'block';
-            this.error.textContent = '' + err;
         }).finally(() => {
             this.title.style.display = 'block';
             this.buttonSet.style.display = 'block';
-            this.loader.style.display = 'none';
-        }).run();
+        }).runView(
+            this.loader,
+            this.error,
+            [this.buttonSet, this.title],
+            null,
+        );
     }
 }
 
@@ -176,20 +164,15 @@ class AccountTransactionsView extends View {
     }
 
     show(accountID) {
-        this.error.style.display = 'none';
-        this.empty.style.display = 'none';
-        this.transactions.style.display = 'none';
-        this.loader.style.display = 'block';
-
         this._request = new APIRequestTransactions(accountID);
         this._request.onData((transactions) => {
             this.populateList(transactions);
-        }).onError((err) => {
-            this.error.style.display = 'block';
-            this.error.textContent = '' + err;
-        }).finally(() => {
-            this.loader.style.display = 'none';
-        }).run();
+        }).runView(
+            this.loader,
+            this.error,
+            [this.empty, this.transactions],
+            null,
+        );
     }
 
     hide() {
@@ -246,24 +229,16 @@ class AccountUploadView extends View {
 
     upload() {
         // TODO: check if a file has been selected.
-
-        this.loader.style.display = 'block';
-        this.error.style.display = 'none';
-        this.input.classList.add('disabled-loading');
-        this.button.classList.add('disabled-loading');
-
         const file = this.input.files[0];
         this._request = new APIRequestUploadTransactions(this._accountID, file);
         this._request.onData((transactions) => {
             this.onUploaded(transactions);
-        }).onError((err) => {
-            this.error.style.display = 'block';
-            this.error.textContent = '' + err;
-        }).finally(() => {
-            this.loader.style.display = 'none';
-            this.input.classList.remove('disabled-loading');
-            this.button.classList.remove('disabled-loading');
-        }).run();
+        }).runView(
+            this.loader,
+            this.error,
+            null,
+            [this.input, this.button],
+        );
     }
 }
 
@@ -328,23 +303,18 @@ class FilterEditorView extends View {
     show(accountID) {
         this._accountID = accountID;
 
-        this.expandButton.style.display = 'none';
-        this.error.style.display = 'none';
-        this.container.style.display = 'none';
-        this.loader.style.display = 'block';
-
         this._request = new APIRequestFilters(accountID);
         this._request.onData((filterData) => {
             this.loadFilterData(filterData);
             this.expandButton.style.display = 'block';
             this.expandButton.textContent = 'Show filter editor';
             this.container.style.display = 'none';
-        }).onError((err) => {
-            this.error.textContent = '' + err;
-            this.error.style.display = 'block';
-        }).finally(() => {
-            this.loader.style.display = 'none';
-        }).run();
+        }).runView(
+            this.loader,
+            this.error,
+            [this.container, this.expandButton],
+            null,
+        );
     }
 
     hide() {
@@ -354,11 +324,6 @@ class FilterEditorView extends View {
     }
 
     save() {
-        this.expandButton.classList.add('disabled-loading');
-        this.container.classList.add('disabled-loading');
-        this.error.style.display = 'none';
-        this.loader.style.display = 'block';
-
         const data = {
             'PatternFilters': this.patternSection.save(),
             'CategoryFilters': this.categorySection.save(),
@@ -369,14 +334,12 @@ class FilterEditorView extends View {
         this._request.onData((filterData) => {
             this.loadFilterData(filterData);
             this.onChange();
-        }).onError((err) => {
-            this.error.textContent = '' + err;
-            this.error.style.display = 'block';
-        }).finally(() => {
-            this.loader.style.display = 'none';
-            this.expandButton.classList.remove('disabled-loading');
-            this.container.classList.remove('disabled-loading');
-        }).run();
+        }).runView(
+            this.loader,
+            this.error,
+            null,
+            [this.expandButton, this.container],
+        );
     }
 
     loadFilterData(filterData) {
@@ -408,21 +371,17 @@ class SummaryView extends View {
     }
 
     show() {
-        this.content.style.display = 'none';
-        this.error.style.display = 'none';
-        this.loader.style.display = 'block';
-
         this._request = new APIRequestAllTransactions();
         this._request.onData((transactions) => {
             this.content.style.display = 'block';
             this._data = transactions;
             this.populateContent();
-        }).onError((err) => {
-            this.error.textContent = '' + err;
-            this.error.style.display = 'block';
-        }).finally(() => {
-            this.loader.style.display = 'none';
-        }).run();
+        }).runView(
+            this.loader,
+            this.error,
+            [this.content],
+            null,
+        );
     }
 
     hide() {
